@@ -1,0 +1,30 @@
+import polyscope as ps
+from Camera import Camera
+import numpy as np
+import cv2
+
+ps.init()
+
+# recup données caméra
+cam = Camera()
+frames, aligned_frames, aligned_depth_frame, color_frame = cam.updateCam()
+
+depth_image = np.asanyarray(aligned_depth_frame.get_data())
+
+
+
+cv2.imshow("Image", depth_image)
+
+
+xyz = []
+for x in range(depth_image.shape[0]):
+    for y in range(depth_image.shape[1]):
+        xyz.append([x, y, depth_image[x, y]])
+
+xyz = np.asanyarray(xyz)
+print(xyz)
+
+
+# visualize!
+ps_cloud = ps.register_point_cloud("my points", xyz)
+ps.show()
