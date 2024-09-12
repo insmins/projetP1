@@ -89,6 +89,19 @@ class Camera:
         # generating mask for blue color
         mask = cv2.inRange(hsv_img, lower_hsv, higher_hsv)
         return mask
+    
+    def positionXYZ(self, pixel):
+        if pixel is None:
+            return
+
+        (px, py) = pixel
+
+        depth = self.aligned_depth_frame.get_distance(px, py)
+        # X, Y, Z = rs.rs2_deproject_pixel_to_point(intr, pixel, depth)
+        point = rs.rs2_deproject_pixel_to_point(self.color_intrinsics, [px, py], depth)
+        # en mètres m
+        point = [point[0], point[1], point[2]]
+        return point
 
 
 def main():
