@@ -11,10 +11,7 @@ frames, aligned_frames, aligned_depth_frame, color_frame = cam.updateCam()
 
 depth_image = np.asanyarray(aligned_depth_frame.get_data())
 
-
-
-cv2.imshow("Image", depth_image)
-
+# cv2.imshow("Image", depth_image)
 
 xyz = []
 for x in range(depth_image.shape[0]):

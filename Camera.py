@@ -1,5 +1,5 @@
 """
-test voir cam
+Class Camera et test cam
 """
 import time
 
