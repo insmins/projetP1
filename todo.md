@@ -9,3 +9,7 @@
 - pypmeshlab ?
 - décision face à prendre
 - définir lieu dépôt
+
+liens :
+- calibrer la caméra : https://dev.intelrealsense.com/docs/tuning-depth-cameras-for-best-performance
+
