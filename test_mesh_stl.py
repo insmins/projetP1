@@ -7,36 +7,11 @@ import datetime
 
 # recup données caméra
 cam = Camera.Camera()
-frames, aligned_frames, aligned_depth_frame, color_frame = cam.updateCam()
-
-depth_image = np.asanyarray(aligned_depth_frame.get_data())
-
-# retirer les valeurs aberrantes
-flat_depth = depth_image.flatten()
-# flat_depth = removeOutliers(flat_depth, 2)
-borne_inf, borne_sup = up_down_limits(flat_depth, 2)
-mediane = np.median(flat_depth)
-
-# valeurs aberrantes = mediane et creation de la liste des points x, y, z
-xyz = []
-for x in range(depth_image.shape[0]):
-    for y in range(depth_image.shape[1]):
-        if depth_image[x, y] <=borne_inf or depth_image[x, y]>= borne_sup: #si en dehors des bornes alors valeur aberrante
-            depth_image[x][y] = mediane
-        xyz.append([x, y, depth_image[x, y]])  
-
-xyz = np.asanyarray(xyz)      
-
-# # chargement de xyz depuis fichier exemple pour test sans cam
-# xyz = np.loadtxt("xyz_traite.txt")
-
-# creation de la liste de tous les x tous les y
-touslesx = xyz[:, 0]
-touslesy = xyz[:, 1]
-touslesz = xyz[:, 2]
-
+cam.updateCam() 
+# creation liste xyz
+xyz=cam.create_xyz()
 # creation des triangles
-triangles = tri.Triangulation(touslesx, touslesy)
+triangles =cam.create_xyz()
 
 # Create the mesh
 cube = mesh.Mesh(np.zeros(triangles.triangles.shape[0], dtype=mesh.Mesh.dtype))
