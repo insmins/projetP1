@@ -57,21 +57,21 @@ class Camera:
 
     def mask_jaune(self, hsv_img):
         # define range of yellow color in HSV
-        lower_hsv = np.array([20, 80, 50])
+        lower_hsv = np.array([20, 110, 50])
         higher_hsv = np.array([50, 255, 255])
 
         # generating mask for blue color
         mask = cv2.inRange(hsv_img, lower_hsv, higher_hsv)
-        return mask
+        return cv2.morphologyEx(mask, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_CROSS, (5, 5)))
 
     def mask_vert(self, hsv_img):
         # define range of blue color in HSV
-        lower_hsv = np.array([50, 80, 35])
+        lower_hsv = np.array([50, 150, 50])
         higher_hsv = np.array([85, 255, 255])
 
         # generating mask for blue color
         mask = cv2.inRange(hsv_img, lower_hsv, higher_hsv)
-        return mask
+        return cv2.morphologyEx(mask, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_CROSS, (5, 5)))
 
     def mask_rouge(self, hsv_img):
         # define range of blue color in HSV
@@ -80,16 +80,16 @@ class Camera:
 
         # generating mask for blue color
         mask = cv2.inRange(hsv_img, lower_hsv, higher_hsv)
-        return mask
+        return cv2.morphologyEx(mask, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_CROSS, (5, 5)))
 
     def mask_bleu(self, hsv_img):
         # define range of blue color in HSV
-        lower_hsv = np.array([90, 80, 50])
-        higher_hsv = np.array([110, 255, 255])
+        lower_hsv = np.array([80, 50, 30])
+        higher_hsv = np.array([150, 255, 255])
 
         # generating mask for blue color
         mask = cv2.inRange(hsv_img, lower_hsv, higher_hsv)
-        return mask
+        return cv2.morphologyEx(mask, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_CROSS, (5, 5)))
     
     def positionXYZ(self, pixel):
         if pixel is None:
@@ -104,7 +104,7 @@ class Camera:
         point = [point[0], point[1], point[2]]
         return point
     
-    def create_xyz(self):
+    def create_xyz(self, mask=None):
         depth_image = np.asanyarray(self.aligned_depth_frame.get_data())
 
         # retirer les valeurs aberrantes
@@ -118,8 +118,11 @@ class Camera:
             for y in range(depth_image.shape[1]):
                 # if depth_image[x, y] <=borne_inf or depth_image[x, y]>= borne_sup: #si en dehors des bornes alors valeur aberrante
                 #     depth_image[x, y] = mediane
-                if depth_image[x, y] !=0 :
+                if mask is None and depth_image[x, y] !=0 :
                     xyz.append([x, y, depth_image[x, y]])
+                elif mask is not None and mask[x, y] !=0 :
+                    xyz.append([x, y, depth_image[x, y]])
+                
         self.xyz = np.asanyarray(xyz)
         return self.xyz
     
@@ -158,8 +161,8 @@ def main():
     depth_image = np.asanyarray(aligned_depth_frame.get_data())
     flat_depth=depth_image.flatten()
     flat_depth=removeOutliers(flat_depth, 2)    
-    max_depth=flat_depth.max()
-    min_depth=flat_depth.min()
+    max_depth=depth_image.max()
+    min_depth=depth_image.min()
 
     depth_image -= min_depth
 

@@ -5,6 +5,7 @@ Classe avec fonctions utiles pour le robot
 import rtde_receive
 import rtde_control
 from Transfo import create_matrice
+import numpy as np
 
 class Robot :
     def __init__(self):
