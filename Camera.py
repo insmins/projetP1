@@ -7,7 +7,8 @@ import time
 import cv2
 import pyrealsense2 as rs
 import numpy as np
-from filter_outliers import removeOutliers
+from filter_outliers import up_down_limits, removeOutliers
+import matplotlib.tri as tri
 
 
 class Camera:
@@ -46,13 +47,13 @@ class Camera:
         self.align = rs.align(align_to)
 
     def updateCam(self):
-        frames = self.pipeline.wait_for_frames()
-        aligned_frames = self.align.process(frames)
+        self.frames = self.pipeline.wait_for_frames()
+        self.aligned_frames = self.align.process(self.frames)
 
         # Get aligned frames
-        aligned_depth_frame = aligned_frames.get_depth_frame()  # aligned_depth_frame is a 640x480 depth image
-        color_frame = aligned_frames.get_color_frame()
-        return frames, aligned_frames, aligned_depth_frame, color_frame
+        self.aligned_depth_frame = self.aligned_frames.get_depth_frame()  # aligned_depth_frame is a 640x480 depth image
+        self.color_frame = self.aligned_frames.get_color_frame()
+        return self.frames, self.aligned_frames, self.aligned_depth_frame, self.color_frame
 
     def mask_jaune(self, hsv_img):
         # define range of yellow color in HSV
@@ -102,6 +103,35 @@ class Camera:
         # en mètres m
         point = [point[0], point[1], point[2]]
         return point
+    
+    def create_xyz(self):
+        depth_image = np.asanyarray(self.aligned_depth_frame.get_data())
+
+        # retirer les valeurs aberrantes
+        # flat_depth = depth_image.flatten()
+        # borne_inf, borne_sup = up_down_limits(flat_depth, 2)
+        # mediane = np.median(flat_depth)
+
+        # valeurs aberrantes = mediane et creation de la liste des points x, y, z
+        xyz = []
+        for x in range(depth_image.shape[0]):
+            for y in range(depth_image.shape[1]):
+                # if depth_image[x, y] <=borne_inf or depth_image[x, y]>= borne_sup: #si en dehors des bornes alors valeur aberrante
+                #     depth_image[x, y] = mediane
+                if depth_image[x, y] !=0 :
+                    xyz.append([x, y, depth_image[x, y]])
+        self.xyz = np.asanyarray(xyz)
+        return self.xyz
+    
+    def create_triangle(self):
+        touslesx = self.xyz[:, 0]
+        touslesy = self.xyz[:, 1]
+        touslesz = self.xyz[:, 2]
+
+        # creation des triangles
+        triangles = tri.Triangulation(touslesx, touslesy)
+        return triangles
+        
 
 
 def main():
