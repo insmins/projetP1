@@ -121,7 +121,7 @@ class Camera:
                 #     depth_image[x, y] = mediane
                 if mask is None and depth_image[x, y] !=0 :
                     xyz.append([x, y, depth_image[x, y]])
-                elif mask is not None and mask[x, y] !=0 :
+                elif mask is not None and mask[x, y] !=0 and depth_image[x, y] != 0 :
                     xyz.append([x, y, depth_image[x, y]])
                 
         self.xyz = np.asanyarray(xyz)
