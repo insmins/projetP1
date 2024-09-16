@@ -28,3 +28,8 @@ liens :
 - creer des cubes plus petits
 
 
+## idees
+- positionner le cube 3d sur un des cubes du mesh
+- scanner en 3d le cube avec realsense
+
+
