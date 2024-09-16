@@ -45,6 +45,7 @@ class Camera:
         # The "align_to" is the stream type to which we plan to align depth frames.
         align_to = rs.stream.color
         self.align = rs.align(align_to)
+        self.xyz =[]
 
     def updateCam(self):
         self.frames = self.pipeline.wait_for_frames()
