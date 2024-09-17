@@ -92,18 +92,6 @@ class Camera:
         mask = cv2.inRange(hsv_img, lower_hsv, higher_hsv)
         return cv2.morphologyEx(mask, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_CROSS, (5, 5)))
     
-    def positionXYZ(self, pixel):
-        if pixel is None:
-            return
-
-        (px, py) = pixel
-
-        depth = self.aligned_depth_frame.get_distance(px, py)
-        # X, Y, Z = rs.rs2_deproject_pixel_to_point(intr, pixel, depth)
-        point = rs.rs2_deproject_pixel_to_point(self.color_intrinsics, [px, py], depth)
-        # en mètres m
-        point = [point[0], point[1], point[2]]
-        return point
     
     def create_xyz(self, mask=None):
         depth_image = np.asanyarray(self.aligned_depth_frame.get_data())
@@ -135,7 +123,45 @@ class Camera:
         # creation des triangles
         triangles = tri.Triangulation(touslesx, touslesy)
         return triangles
+    
+    def contours(self, mask):
+        """
+        A supp later, for test purpose
+        """
+        elements, hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+        # len(elements) renvoie le nombre de régions de pixels connexes détectés.
+        if len(elements) > 0:
+            # sorted() permet de trier par ordre décroissant les instances de elements en fonction de leur surface
+            c = sorted(elements, key=cv2.contourArea)
+            return c
+
+    def centre(self, mask):
+        """
+        A supp later, for test purpose
+        """
+        c = self.contours(mask)
+        if c is not None:
+            # définit le cercle minimum qui couvre complètement l'objet avec une surface minimale
+            ((x, y), rayon) = cv2.minEnclosingCircle(c[0])
+            return int(x), int(y)
         
+    def positionXYZ(self, pixel):
+        """
+        A supp later, for test purpose
+        """
+        if pixel is None:
+            return
+
+        (px, py) = pixel
+
+        depth = self.aligned_depth_frame.get_distance(px, py)
+        print("depth: ", depth)
+        # X, Y, Z = rs.rs2_deproject_pixel_to_point(intr, pixel, depth)
+        point = rs.rs2_deproject_pixel_to_point(self.color_intrinsics, [px, py], depth)
+        # en mètres m
+        point = [point[0], point[1], point[2]]
+        return point
 
 
 def main():

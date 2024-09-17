@@ -60,7 +60,7 @@ pince.lacher()
 # au tour du robot
 
 robot.connexion()
-robot.bouger_relatif(dy=0.1)
+robot.calcul_pos_relative(dy=0.1)
 
 
 #re pince 
@@ -69,4 +69,4 @@ pince.prise()
 
 #re robot
 robot.connexion()
-robot.bouger_relatif(dy=-0.1)
+robot.calcul_pos_relative(dy=-0.1)

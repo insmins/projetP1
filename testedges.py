@@ -97,6 +97,7 @@ edge_points = PyntCloud(pd.DataFrame(data=edge_np,columns=clmns))
 PyntCloud.to_file(pcd_points,output_dir+'pointcloud_edges.ply')   # Save the whole point cloud by painting the edge points
 PyntCloud.to_file(edge_points,output_dir+'edges.ply')             # Save just the edge points
 
-ps_cloud = ps.register_point_cloud("my points", xyz)
-ps_cloud = ps.register_point_cloud("edges", pcd_points.points.to_numpy())
-ps.show()
+print(edge_points.points.to_numpy())
+# ps_cloud = ps.register_point_cloud("my points", xyz)
+# ps_cloud = ps.register_point_cloud("edges", pcd_points.points.to_numpy())
+# ps.show()

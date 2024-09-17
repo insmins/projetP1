@@ -24,6 +24,7 @@ def pose_to_matrice(pose):
     RT = np.concatenate((Rvect_3x3, tvect), axis=1)
     matrice_4x4 = np.concatenate((RT, np.array([[0, 0, 0, 1]])), axis=0)
     return matrice_4x4
+
 def create_matrice(pose):
     """
     Calcul d'une matrice à partir d'une pose
@@ -79,6 +80,7 @@ def rtvect_to_matrice(rvect,tvect):
     matrice_4x4 = np.concatenate((RT, np.array([[0, 0, 0, 1]])), axis=0)
 
     return matrice_4x4
+
 def Rtvect_to_matrice(Rvec,tvec):
     """
     Calcul d'une matrice à partir Rvect,tvect
