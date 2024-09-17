@@ -25,7 +25,7 @@ liens :
 - calibration plus tard, d'abord se concentrer sur les nuages de points sur la caméra
 - disposition un peu libre (choisir (éventuellement configurable selon la taille des éléments))
 
-- creer des cubes plus petits
+- creer des cubes plus petits --> en fait pas besoin car la pince s'ouvre suffisamment
 
 
 ## idees
