@@ -6,16 +6,21 @@ import rtde_receive
 import rtde_control
 from Transfo import create_matrice
 import numpy as np
+from Pince import Pince
+import time
 
 class Robot :
     def __init__(self):
         # variable du robot
         self.num_cube = 0
-        self.pos_init =[] # a def
-        self.pos_depot_cube = [] # a def
-        self.pos_nuage_point = [] #a def (voir si plusieurs)
-        self.delta_x = 0.065 #(en mm) decalage en x pour la pose des cubes 
-        self.delta_y = 0.065 #(en mm) decalage en y pour la pose des cubes 
+        self.pos_init =[-0.27961,-0.11156,0.23741,0.135,-3.128,0.144] 
+        self.pos_depot_cube = [-0.48118,-0.26843,0.06306,0.082,-3.120,0.114]
+        self.pos_cam_1 = [-0.22973,0.06416,0.29767,0.059,-3.210,0.160] 
+        self.pos_cam_2 = [-0.37208,0.12440,0.28392,0.135,-3.672,-0.017] 
+        self.pos_cam_3 = [-0.36526,-0.02440,0.31308,2.016,-3.311,-0.570] 
+        self.pos_cam_4 = [-0.17128,0.00558,0.24855,1.211,3.292,0.218]
+        self.delta_x = 0.083 #(en mm) decalage en x pour la pose des cubes 
+        self.delta_y = 0.083 #(en mm) decalage en y pour la pose des cubes 
 
         #move to pose initiale
         # self.robot_c.moveL(self.pos_init, 0.5, 0.3)
@@ -48,22 +53,47 @@ class Robot :
         # print(f'{res=}')
         return res[:3]
 
-    def deconnecter(self): 
+    def deconnexion(self): 
         self.robot_c.disconnect()
 
-    def rangement(self):
+    def bouger(self, pos, speed=0.5, acceleration=0.3):
+        self.connexion()
+        self.robot_c.moveL(pos, speed, acceleration)
+        self.deconnexion()
+
+    def rangement(self, pince: Pince):
         #calcul pos_rangement en fonction de self.num_cube
         pos_rangement= self.calcul_pos_relative(self.delta_x * (self.num_cube//3), self.delta_y* (self.num_cube%3), pos=self.pos_depot_cube)
+        print(f"{pos_rangement=}")
 
         #bouger à pos_rangement (avec pos_intermediaire au dessus)
-        self.robot_c.moveL(self.calcul_pos_relative(dz=0.1, pos=self.pos_rangement)) #verif si z + ou -
-        self.robot_c.moveL(pos_rangement, 0.5, 0.3)
-        self.robot_c.moveL(self.calcul_pos_relative(dz=0.1, pos=self.pos_rangement)) #verif si z + ou -
+        self.bouger(self.calcul_pos_relative(dz=0.1, pos=pos_rangement)) #verif si z + ou -
+        self.bouger(pos_rangement, 0.5, 0.3)  
+        
+        #lacher
+        pince.lacher()
+        
+        #remonter
+        self.bouger(self.calcul_pos_relative(dz=0.1, pos=pos_rangement)) #verif si z + ou -
 
         #maj compteur cube
         self.num_cube +=1
-
-        # disconnect
-        self.robot_c.disconnect()
+        print(self.num_cube)
 
 
+if __name__ == "__main__":
+    robot = Robot()
+    pince = Pince()
+    robot.rangement(pince)
+    robot.bouger(robot.pos_init)
+    # time.sleep(3)
+    # pince.prise()
+    # time.sleep(2)
+    robot.rangement(pince)
+
+    robot.bouger(robot.pos_cam_1)
+    robot.bouger(robot.pos_cam_2)
+    robot.bouger(robot.pos_cam_3)
+    robot.bouger(robot.pos_cam_4)
+
+    robot.robot_c.stopScript()

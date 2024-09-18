@@ -16,6 +16,9 @@ class Pince :
 
 
     def _action_pince(self, action):
+        # connecter la pince
+        self.connexion()
+
         if action == "prise":  # Changement de valeur de la sortie suivant le mouvement de pince à effectuer
             self.robot.send(("set_standard_digital_out(0,True)" + "\n").encode('utf8'))
         elif action == "lacher":
@@ -27,6 +30,7 @@ class Pince :
         time.sleep(4)
         self.dashboard.send(("stop" + "\n").encode('utf8'))  # On arrête à nouveau le programme local
 
+        # deconnecter la pince
         self.robot.close()
     
     def prise(self):
