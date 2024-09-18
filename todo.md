@@ -32,4 +32,6 @@ liens :
 - positionner le cube 3d sur un des cubes du mesh
 - scanner en 3d le cube avec realsense
 
+## video pour la segmentation du cube
+https://youtu.be/-OSVKbSsqT0?si=YsiDMUULMWDmbrLX
 
