@@ -156,7 +156,7 @@ class Camera:
         (px, py) = pixel
 
         depth = self.aligned_depth_frame.get_distance(px, py)
-        print("depth: ", depth)
+        # print(pixel)
         # X, Y, Z = rs.rs2_deproject_pixel_to_point(intr, pixel, depth)
         point = rs.rs2_deproject_pixel_to_point(self.color_intrinsics, [px, py], depth)
         # en mètres m
@@ -165,9 +165,9 @@ class Camera:
     
     def positions_xyz(self, xyz):
         positions = []
-        for pixel in xyz:
+        for i, pixel in enumerate(xyz):
             if pixel[2] != 0:
-                positions.append(self.positionXYZ(pixel))
+                positions.append(self.positionXYZ([pixel[1], pixel[0]]))
         return positions
 
 
