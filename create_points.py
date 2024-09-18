@@ -19,4 +19,4 @@ for i in range(4):
     xyz = cam.create_xyz()
     print(len(xyz))
     pos = cam.positions_xyz(xyz)
-    np.savetxt(f"cam_{i}.txt", pos)
+    np.savetxt(f"uncube_cam_{i}.txt", pos)
