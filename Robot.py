@@ -64,36 +64,36 @@ class Robot :
     def rangement(self, pince: Pince):
         #calcul pos_rangement en fonction de self.num_cube
         pos_rangement= self.calcul_pos_relative(self.delta_x * (self.num_cube//3), self.delta_y* (self.num_cube%3), pos=self.pos_depot_cube)
-        print(f"{pos_rangement=}")
+        # print(f"{pos_rangement=}")
 
         #bouger à pos_rangement (avec pos_intermediaire au dessus)
-        self.bouger(self.calcul_pos_relative(dz=0.1, pos=pos_rangement)) #verif si z + ou -
+        self.bouger(self.calcul_pos_relative(dz=0.1, pos=pos_rangement),1,5) #verif si z + ou -
         self.bouger(pos_rangement, 0.5, 0.3)  
         
         #lacher
         pince.lacher()
         
         #remonter
-        self.bouger(self.calcul_pos_relative(dz=0.1, pos=pos_rangement)) #verif si z + ou -
+        self.bouger(self.calcul_pos_relative(dz=0.1, pos=pos_rangement),1,5) #verif si z + ou -
 
         #maj compteur cube
         self.num_cube +=1
-        print(self.num_cube)
+        # print(self.num_cube)
 
 
 if __name__ == "__main__":
     robot = Robot()
     pince = Pince()
-    robot.rangement(pince)
-    robot.bouger(robot.pos_init)
-    # time.sleep(3)
-    # pince.prise()
-    # time.sleep(2)
-    robot.rangement(pince)
+    robot.bouger(robot.pos_init,2)
+    robot.bouger(robot.pos_cam_1,1.5)
+    robot.bouger(robot.pos_cam_2,1.5)
+    robot.bouger(robot.pos_cam_3,1.5)
+    robot.bouger(robot.pos_cam_4,1.5)
+    robot.bouger(robot.pos_init,2)
+    # for _ in range(9) :
+    #     robot.rangement(pince)
+    robot.rangement(pince) 
 
-    robot.bouger(robot.pos_cam_1)
-    robot.bouger(robot.pos_cam_2)
-    robot.bouger(robot.pos_cam_3)
-    robot.bouger(robot.pos_cam_4)
-
+    
+    robot.bouger(robot.pos_init,2)
     robot.robot_c.stopScript()
