@@ -162,6 +162,13 @@ class Camera:
         # en mètres m
         point = [point[0], point[1], point[2]]
         return point
+    
+    def positions_xyz(self, xyz):
+        positions = []
+        for pixel in xyz:
+            if pixel[2] != 0:
+                positions.append(self.positionXYZ(pixel))
+        return positions
 
 
 def main():
