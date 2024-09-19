@@ -6,10 +6,13 @@ from filter_outliers import up_down_limits
 
 ps.init()
 
-# recup données caméra
-cam = Camera()
-cam.updateCam() 
-xyz=cam.create_xyz()
+# # recup données caméra
+# cam = Camera()
+# cam.updateCam() 
+# xyz=cam.create_xyz()
+
+xyz = np.loadtxt("cam_1.txt")
+
 
 # np.savetxt("xyz_traite.txt", xyz)
 
