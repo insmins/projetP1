@@ -2,22 +2,22 @@ import numpy as np
 from Robot import Robot
 import polyscope as ps
 
-# # CREER LA MAXI LISTE de points (prend du temps)
-# Points = [np.loadtxt("uncube_cam_0.txt"), np.loadtxt("uncube_cam_1.txt"), np.loadtxt("uncube_cam_2.txt"), np.loadtxt("uncube_cam_3.txt")]
-# robot = Robot()
-# poscam = [robot.pos_cam_1, robot.pos_cam_2, robot.pos_cam_3, robot.pos_cam_4]
+# CREER LA MAXI LISTE de points (prend du temps)
+Points = [np.loadtxt("uncube_cam_0.txt"), np.loadtxt("uncube_cam_1.txt"), np.loadtxt("uncube_cam_2.txt"), np.loadtxt("uncube_cam_3.txt")]
+robot = Robot()
+poscam = [robot.pos_cam_1, robot.pos_cam_2, robot.pos_cam_3, robot.pos_cam_4]
 
-# maxi_points = []
-# for i, points in enumerate(Points):
-#     for point in points :
-#         maxi_points.append(robot.cam2base(point.tolist(), poscam[i]))
+maxi_points = []
+for i, points in enumerate(Points):
+    for point in points :
+        maxi_points.append(robot.cam2base(point.tolist(), poscam[i]))
 
-# maxi_points = np.asanyarray(maxi_points)
+maxi_points = np.asanyarray(maxi_points)
 
-# np.savetxt("maxipoints.txt", maxi_points)
+np.savetxt("maxipoints.txt", maxi_points)
 
-# load la maxi liste au lieu de la créer
-maxi_points = np.loadtxt("maxipoints.txt")
+# # load la maxi liste au lieu de la créer
+# maxi_points = np.loadtxt("maxipoints.txt")
 
 
 # enlever les points plus bas que le plateau

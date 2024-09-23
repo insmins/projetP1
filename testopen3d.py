@@ -6,15 +6,15 @@ import polyscope as ps
 Centre = centre[0]
 
 # fonction
-def ransac_cube(points, num_iterations=1000, threshold=0.06):
+def ransac_cube(points, num_iterations=1000, threshold_max=0.06, threshold_min=0.0325):
     best_params = None
     best_distance = -1
     best_centre = None
 
     for _ in range(num_iterations):
         sample = points[np.random.randint(0, points.shape[0])]
-        alpha = np.random.uniform(0, np.pi)
-        beta = np.random.uniform(0, np.pi)
+        alpha = np.random.uniform(0, 2*np.pi)
+        beta = np.random.uniform(0, 2*np.pi)
 
         centre = translater(sample, tourner(alpha, beta, Centre))
 
@@ -27,7 +27,7 @@ def ransac_cube(points, num_iterations=1000, threshold=0.06):
             #     dist = np.sqrt((p[0]-c[0])**2 + (p[1]-c[1])**2 + (p[2]-c[2])**2)
             #     if dist < min_dist:
             #         min_dist = dist
-            if dist < threshold:
+            if dist < threshold_max and dist > threshold_min:
                 distances += dist
                 n += 1
         
@@ -82,7 +82,7 @@ pcl_downsampled = filtered_pcl.voxel_down_sample(voxel_size=voxel_size)
 
 points = np.asanyarray(pcl_downsampled.points)
 
-best_cube_params, _, CENTER = ransac_cube(points, num_iterations=2000)
+best_cube_params, _, CENTER = ransac_cube(points, num_iterations=5000)
 
 best_cube = translater_cube(best_cube_params[0], tourner_cube(best_cube_params[1], best_cube_params[2], cube))
 
