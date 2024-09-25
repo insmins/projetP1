@@ -3,40 +3,47 @@ import numpy as np
 from test_cube import tourner, translater, cube, centre, translater_cube, tourner_cube
 import polyscope as ps
 
+# centre du cube de base
 Centre = centre[0]
 
 # fonction
-def ransac_cube(points, num_iterations=1000, threshold_max=0.06, threshold_min=0.0325):
+def ransac_cube(points, num_iterations=1000, threshold_max=0.058, threshold_min=0.0325):
+    """
+    Calcule le meilleur cube parmi num_iterations de cubes aléatoires
+    """
+    # contiennent le meilleur match
     best_params = None
-    best_distance = -1
+    best_number = -1
     best_centre = None
+    best_inliers = None
 
     for _ in range(num_iterations):
+        # un cube = un point, un alpha, un beta
         sample = points[np.random.randint(0, points.shape[0])]
         alpha = np.random.uniform(0, 2*np.pi)
         beta = np.random.uniform(0, 2*np.pi)
 
+        # calcul de la position du centre du cube
         centre = translater(sample, tourner(alpha, beta, Centre))
 
-        distances = 0
         n = 0
-        for p in points:
+        inliers = []
+        for i, p in enumerate(points):
+            # calcul de la distance entre chaque point et le centre du cube
             dist = np.sqrt((p[0]-centre[0])**2 + (p[1]-centre[1])**2 + (p[2]-centre[2])**2)
-            # min_dist = 100
-            # for c in nouveau_cube:
-            #     dist = np.sqrt((p[0]-c[0])**2 + (p[1]-c[1])**2 + (p[2]-c[2])**2)
-            #     if dist < min_dist:
-            #         min_dist = dist
+
+            # threshold max et min = on regarde si le point est entre le point le plus éloigné
+            # et le moins éloigné du centre (entre le centre d'une face ~ 0.0325 et un coin du cube ~ 0.06)
             if dist < threshold_max and dist > threshold_min:
-                distances += dist
+                inliers.append(i)
                 n += 1
         
-        distances = distances/n
-        if distances < best_distance or best_distance == -1:
-            best_distance = distances
+        if n > best_number or best_number == -1:
+            best_number = n
             best_params = [sample, alpha, beta]
             best_centre = centre
-    return best_params, best_distance, best_centre
+            best_inliers = inliers
+    return best_params, best_inliers, best_centre
             
 
 
@@ -53,13 +60,6 @@ zmin = 0.030 # Avec table enlevée
 
 points = np.array([p for p in points if p[0] > xmin and p[0] < xmax and p[1] > ymin and p[1] < ymax and p[2] > zmin])
 
-# asupp = []
-# for i, point in enumerate(points):
-#     if point[0] <= xmin or point[0] >= xmax or point[1] <= ymin or point[1] >= ymax or point[2] <= zmin:
-#         asupp.append(i)
-
-
-# points = np.delete(points, asupp, axis = 0)
 
 # creation du pointcloud open3d
 pcl = o3d.geometry.PointCloud()
@@ -79,12 +79,50 @@ filtered_pcl = filtered_pcl[0]
 # voxel downsampling
 voxel_size = 0.003
 pcl_downsampled = filtered_pcl.voxel_down_sample(voxel_size=voxel_size)
-
 points = np.asanyarray(pcl_downsampled.points)
 
-best_cube_params, _, CENTER = ransac_cube(points, num_iterations=5000)
+# normal calculation
+pcl_downsampled.estimate_normals(search_param=o3d.geometry.KDTreeSearchParamHybrid(radius=0.1, max_nn=30))
+
+
+# RANSAC
+best_cube_params, inliers, CENTER = ransac_cube(points, num_iterations=5000)
+
+# Angle matching
+pcl_inliers = pcl_downsampled.select_by_index(inliers)
+
+plane_model, inliersplane = pcl_inliers.segment_plane(distance_threshold=0.005, ransac_n=3, num_iterations=1000)
+inliersplane_cloud = pcl_inliers.select_by_index(inliersplane)
+
+pcl_center = o3d.geometry.PointCloud()
+pcl_center.points = o3d.utility.Vector3dVector(np.array([CENTER]))
+
+o3d.visualization.draw_geometries([inliersplane_cloud, pcl_center])
+
+# best_center_normal = None
+# center_normal = [np.random.uniform(0, 1), np.random.uniform(0, 1), np.random.uniform(0, 1)]
+# mul = 1
+# normale = pcl_inliers.normals[np.random.randint(0, len(inliers))]
+# print(f'{normale=}')
+# old_angle = np.dot(center_normal, normale)
+# for _ in range(400):
+#     center_normal = np.random.rand(3)
+#     # center_normal = center_normal / np.linalg.norm(center_normal)
+#     angle = np.dot(center_normal, normale)
+#     if angle < old_angle:
+#         old_angle = angle
+#         best_center_normal = center_normal
+
+# pcl_center = o3d.geometry.PointCloud()
+# pcl_center.points = o3d.utility.Vector3dVector(np.array([CENTER]))
+# pcl_center.normals = o3d.utility.Vector3dVector(np.array([best_center_normal]))
+
+# o3d.visualization.draw_geometries([pcl_inliers, pcl_center])
+
+
 
 best_cube = translater_cube(best_cube_params[0], tourner_cube(best_cube_params[1], best_cube_params[2], cube))
+
 
 
 ps.init()
