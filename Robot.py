@@ -19,10 +19,11 @@ class Robot :
         self.pos_cam_2 = [-0.35594,0.16063,0.27617,0.097,2.538,-0.192] 
         self.pos_cam_3 = [-0.14889,-0.02927,0.20331,0.196,3.455,0.276] 
         self.pos_cam_4 = [-0.17349,0.15271,0.24970,1.610,2.644,-0.680]
-        self.pos_cam_5 = [-0.21852,-0.08733,-0.25996,2.090,2.747,-0.771]
-        self.pos_cam_6 = [-0.32933,-0.00430,-0.26788,2.582,-2.630,-1.215]
+        self.pos_cam_5 = [-0.21852,0.08733,0.25996,2.090,2.747,-0.771]
+        self.pos_cam_6 = [-0.32933,-0.00430,0.26788,2.582,-2.630,-1.215]
         self.delta_x = 0.083 #(en mm) decalage en x pour la pose des cubes 
         self.delta_y = 0.083 #(en mm) decalage en y pour la pose des cubes 
+        self.correctif_pose=[0,0,0,0.0,-np.pi,0.0]#0.066/0.121
 
         #move to pose initiale
         # self.robot_c.moveL(self.pos_init, 0.5, 0.3)
@@ -40,24 +41,23 @@ class Robot :
     
     def cam2base(self, objetCam, posePrise = None):
         objetCam = np.transpose(objetCam + [1])
-
         # si on veut la pose actuelle
         if posePrise == None:
             posePrise = self.robot_r.getActualTCPPose()
-
         T_cam2gripper = [[ 0.04853044,  0.99880257,  0.00618264,  0.10201555],
                         [-0.99542155,  0.047854,    0.08274014,  0.0217057 ],
                         [ 0.0823452,  -0.01016975,  0.99655198, -0.150],
-                        [ 0.  ,        0.    ,      0.   ,       1.        ]]
-        # T_cam2gripper[0, 3] = 0.100
-        # T_cam2gripper[1, 3] = 0.023
-        # T_cam2gripper[2, 3] = -0.210
-        
+                        [ 0.  ,        0.    ,      0.   ,       1.        ]]      
         T_gripper2base = create_matrice(posePrise)
-
         res = T_gripper2base @ T_cam2gripper @ objetCam
-        # print(f'{res=}')
         return res[:3]
+
+    def correction_pose(self,pose):
+        for i in range(3):
+            pose[3+i]+=self.correctif_pose[3+i]
+        return pose
+        
+
 
     def deconnexion(self): 
         self.robot_c.disconnect()
@@ -90,16 +90,25 @@ class Robot :
 if __name__ == "__main__":
     robot = Robot()
     pince = Pince()
-    robot.bouger(robot.pos_init,2)
-    robot.bouger(robot.pos_cam_1,1.5)
-    robot.bouger(robot.pos_cam_2,1.5)
-    robot.bouger(robot.pos_cam_3,1.5)
-    robot.bouger(robot.pos_cam_4,1.5)
+    robot.bouger(robot.pos_init, 3, 1)
+
+    robot.bouger(robot.pos_cam_1, 3, 1)
+    robot.bouger(robot.pos_cam_2, 3, 1)
+    robot.bouger(robot.pos_cam_3, 3, 1)
+
+    robot.bouger(robot.pos_init, 2, 0.3)
+
+    robot.bouger(robot.pos_cam_4, 3, 1)
+    robot.bouger(robot.pos_cam_5, 2, 0.3)
+
+    robot.bouger(robot.pos_init, 2, 0.3)
+
+    robot.bouger(robot.pos_cam_6, 2, 0.3)
     robot.bouger(robot.pos_init,2)
     # for _ in range(9) :
     #     robot.rangement(pince)
-    robot.rangement(pince) 
+    # robot.rangement(pince) 
 
     
-    robot.bouger(robot.pos_init,2)
-    robot.robot_c.stopScript()
+    # robot.bouger(robot.pos_init,2)
+    # robot.robot_c.stopScript()

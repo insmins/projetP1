@@ -9,9 +9,10 @@ cam = Camera()
 robot.bouger(robot.pos_init,2)
 
 # positions de prise de vue
-pos_prise = [robot.pos_cam_1, robot.pos_cam_2, robot.pos_cam_3, robot.pos_cam_4]
+pos_prise = [robot.pos_cam_1, robot.pos_cam_2, robot.pos_cam_3, robot.pos_cam_4, robot.pos_cam_5, robot.pos_cam_6]
 
-for i in range(4):
+for i in range(6):
+    robot.bouger(robot.pos_init, 2)
     robot.bouger(pos_prise[i])
     cam.updateCam()
     # depth_image = np.asanyarray(cam.aligned_depth_frame.get_data())
@@ -20,3 +21,4 @@ for i in range(4):
     print(len(xyz))
     pos = cam.positions_xyz(xyz)
     np.savetxt(f"uncube_cam_{i}.txt", pos)
+robot.bouger(robot.pos_init, 2)
