@@ -4,7 +4,7 @@ Classe avec fonctions utiles pour le robot
 # import
 import rtde_receive
 import rtde_control
-from Transfo import create_matrice
+from Transfo import create_matrice, matrice_to_pose
 import numpy as np
 from Pince import Pince
 import time
@@ -79,6 +79,30 @@ class Robot :
         #maj compteur cube
         self.num_cube +=1
         # print(self.num_cube)
+    
+    def rotation(self,gamma, beta,alpha): 
+        #conversion alpha, beta, gamma radian
+        alpha=alpha*(np.pi/180)
+        beta=np.pi+beta*(np.pi/180)
+        gamma=gamma*(np.pi/180)
+        Rx=np.asanyarray([[1,            0,             0],
+                        [0,np.cos(gamma),-np.sin(gamma)],
+                        [0,np.sin(gamma), np.cos(gamma)]])
+        Ry=np.asanyarray([[np.cos(beta) ,0,np.sin(beta)],
+                        [0            ,1,           0],
+                        [-np.sin(beta),0,np.cos(beta)]])
+        Rz=np.asanyarray([[np.cos(alpha),-np.sin(alpha),0],
+                        [np.sin(alpha), np.cos(alpha),0],
+                        [0            , 0            ,1]])
+        return Rz @ Ry @ Rx
+
+    def matrice_passage_normale(mat_rot,point):
+        res=mat_rot.tolist()
+        res.append([0,0,0,1])
+        for i in range(len(point)):
+            res[i].append(point[i])
+        return np.asanyarray(res)
+
 
 
 if __name__ == "__main__":
@@ -106,3 +130,15 @@ if __name__ == "__main__":
     
     # robot.bouger(robot.pos_init,2)
     # robot.robot_c.stopScript()
+
+    # #test bouger selon rotation
+    # point=robot.pos_init[:3]    
+    # alpha=0 #selon x
+    # beta=0 # selon y
+    # gamma=0 # selon z
+    # # robot.bouger(pos,0.5)
+    # mat4x4=robot.matrice_passage_normale(robot.rotation(gamma, beta, alpha),point)
+    # # print("mat4x4 :\n",mat4x4)
+    # pos=matrice_to_pose(mat4x4)
+    # # print("pose",pos)
+    # robot.bouger(pos,0.5)

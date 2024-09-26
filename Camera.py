@@ -7,7 +7,7 @@ import time
 import cv2
 import pyrealsense2 as rs
 import numpy as np
-from filter_outliers import up_down_limits, removeOutliers
+# from filter_outliers import up_down_limits, removeOutliers
 import matplotlib.tri as tri
 
 
