@@ -3,18 +3,18 @@ from Robot import Robot
 from Transfo import matrice_to_pose, create_matrice
 
 def rotation(gamma, beta,alpha): 
-    #conversion si alpha, beta en degre et non radian 
+    #conversion alpha, beta, gamma radian
     alpha=alpha*(np.pi/180)
-    beta=beta*(np.pi/180)
+    beta=np.pi+beta*(np.pi/180)
     gamma=gamma*(np.pi/180)
     Rx=np.asanyarray([[1,            0,             0],
-                      [0,np.cos(alpha),-np.sin(alpha)],
-                      [0,np.sin(alpha), np.cos(alpha)]])
+                      [0,np.cos(gamma),-np.sin(gamma)],
+                      [0,np.sin(gamma), np.cos(gamma)]])
     Ry=np.asanyarray([[np.cos(beta) ,0,np.sin(beta)],
                       [0            ,1,           0],
                       [-np.sin(beta),0,np.cos(beta)]])
-    Rz=np.asanyarray([[np.cos(gamma),-np.sin(gamma),0],
-                      [np.sin(gamma), np.cos(gamma),0],
+    Rz=np.asanyarray([[np.cos(alpha),-np.sin(alpha),0],
+                      [np.sin(alpha), np.cos(alpha),0],
                       [0            , 0            ,1]])
     return Rz @ Ry @ Rx
 
@@ -28,26 +28,21 @@ def matrice_passage_normale(mat_rot,point):
 
 if __name__=="__main__":
     robot = Robot()
-    robot.bouger(robot.pos_init, 3, 1)
+    # robot.bouger(robot.pos_init, 3, 1)
 
     point=robot.pos_init[:3]
-    alpha=0
-    beta=0
-    gamma=0
-    pos=point+[gamma,np.pi,0]
+    alpha=0 #selon x
+    beta=0 # selon y
+    gamma=0 # selon z
+    # robot.bouger(pos,0.5)
+    mat4x4=matrice_passage_normale(rotation(gamma, beta, alpha),point)
+    # print("mat4x4 :\n",mat4x4)
+    pos=matrice_to_pose(mat4x4)
+    # print("pose",pos)
     robot.bouger(pos,0.5)
-    for _ in range(18):
-        alpha+=5
-        mat4x4=matrice_passage_normale(rotation(alpha,beta,gamma),point)
-    #     # print(mat4x4)
-        pos=matrice_to_pose(mat4x4)
-        pos= robot.correction_pose(pos)
-    #     # print(pos)
-        print(alpha)
-        # pos[5]=gamma*(np.pi/180)
-        robot.bouger(pos,0.5)
 
-    # robot.bouger(robot.pos_init, 3, 1)
-    # a=create_matrice(robot.pos_init)
-    # print(a)
-    # print(np.linalg.inv(a))
+
+
+
+
+

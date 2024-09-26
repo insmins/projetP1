@@ -23,7 +23,7 @@ class Robot :
         self.pos_cam_6 = [-0.32933,-0.00430,0.26788,2.582,-2.630,-1.215]
         self.delta_x = 0.083 #(en mm) decalage en x pour la pose des cubes 
         self.delta_y = 0.083 #(en mm) decalage en y pour la pose des cubes 
-        self.correctif_pose=[0,0,0,0.0,-np.pi,0.0]#0.066/0.121
+        # self.correctif_pose=[0,0,0,0.0,-np.pi,0.0]#0.066/0.121
 
         #move to pose initiale
         # self.robot_c.moveL(self.pos_init, 0.5, 0.3)
@@ -46,17 +46,11 @@ class Robot :
             posePrise = self.robot_r.getActualTCPPose()
         T_cam2gripper = [[ 0.04853044,  0.99880257,  0.00618264,  0.10201555],
                         [-0.99542155,  0.047854,    0.08274014,  0.0217057 ],
-                        [ 0.0823452,  -0.01016975,  0.99655198, -0.150],
+                        [ 0.0823452,  -0.01016975,  0.99655198, -0.153],
                         [ 0.  ,        0.    ,      0.   ,       1.        ]]      
         T_gripper2base = create_matrice(posePrise)
         res = T_gripper2base @ T_cam2gripper @ objetCam
         return res[:3]
-
-    def correction_pose(self,pose):
-        for i in range(3):
-            pose[3+i]+=self.correctif_pose[3+i]
-        return pose
-        
 
 
     def deconnexion(self): 
