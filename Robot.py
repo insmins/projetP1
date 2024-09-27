@@ -104,7 +104,7 @@ class Robot :
                         [0            , 0            ,1]])
         return Rz @ Ry @ Rx
 
-    def matrice_passage_normale(mat_rot,trans):
+    def matrice_passage_normale(self,mat_rot,trans):
         """
         Créer la matrice de passage 4x4 grâce à la matrice de rotation et le vecteur translation
         """
@@ -119,23 +119,22 @@ class Robot :
 if __name__ == "__main__":
     robot = Robot()
     pince = Pince()
-
-    # test des positions de  cam
     robot.bouger(robot.pos_init, 3, 1)
 
-    robot.bouger(robot.pos_cam_1, 3, 1)
-    robot.bouger(robot.pos_cam_2, 3, 1)
-    robot.bouger(robot.pos_cam_3, 3, 1)
+    # # test des positions de  cam
+    # robot.bouger(robot.pos_cam_1, 3, 1)
+    # robot.bouger(robot.pos_cam_2, 3, 1)
+    # robot.bouger(robot.pos_cam_3, 3, 1)
 
-    robot.bouger(robot.pos_init, 2, 0.3)
+    # robot.bouger(robot.pos_init, 2, 0.3)
 
-    robot.bouger(robot.pos_cam_4, 3, 1)
-    robot.bouger(robot.pos_cam_5, 2, 0.3)
+    # robot.bouger(robot.pos_cam_4, 3, 1)
+    # robot.bouger(robot.pos_cam_5, 2, 0.3)
 
-    robot.bouger(robot.pos_init, 2, 0.3)
+    # robot.bouger(robot.pos_init, 2, 0.3)
 
-    robot.bouger(robot.pos_cam_6, 2, 0.3)
-    robot.bouger(robot.pos_init,2)
+    # robot.bouger(robot.pos_cam_6, 2, 0.3)
+    # robot.bouger(robot.pos_init,2)
 
     # # test des positions de rangement
     # for _ in range(9) :
@@ -154,3 +153,17 @@ if __name__ == "__main__":
     # pos=matrice_to_pose(mat4x4)
     # # print("pose",pos)
     # robot.bouger(pos,0.5)
+
+    base = [[ 0.11318712, -0.05391406,  0.99210985], [-0.46113575,  0.88161765,  0.10051933], [ 0.98480458,  0.13845839, -0.10482946]]
+    base=np.transpose(base)
+    mat_passage=robot.matrice_passage_normale(base,[-0.34039295,  0.15851469 , 0.04402046])
+
+    M = [0]*3
+    M[0] = 0.15
+
+    M = mat_passage @ np.transpose(M+[1])
+    
+    mat_M = robot.matrice_passage_normale(base,np.transpose(M[:3]))
+    pose_dessus_cube=matrice_to_pose(mat_M)
+    pose_dessus_cube[4]+=np.pi
+    robot.bouger(pose_dessus_cube)
