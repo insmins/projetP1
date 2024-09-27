@@ -1,5 +1,6 @@
 import socket
 import time
+# from Robot import Robot
 
 class Pince :
     def __init__(self):
@@ -38,3 +39,24 @@ class Pince :
 
     def lacher(self):
         self._action_pince("lacher")
+
+if __name__=="__main__":
+    pince= Pince()
+    robot = Robot()
+
+    pince.connexion()
+    pince.lacher()
+
+    # au tour du robot
+
+    robot.connexion()
+    robot.calcul_pos_relative(dy=0.1)
+
+
+    #re pince 
+    pince.connexion()
+    pince.prise()
+
+    #re robot
+    robot.connexion()
+    robot.calcul_pos_relative(dy=-0.1)

@@ -1,8 +1,4 @@
-#!/usr/bin/python2
-
 ## UR5/UR10 Inverse Kinematics - Ryan Keating Johns Hopkins University
-
-
 # ***** lib
 import numpy as np
 from numpy import linalg
@@ -19,10 +15,7 @@ from Transfo import create_matrice
 
 global mat
 mat=np.matrix
-
-
 # ****** Coefficients ******
-
 
 global d1, a2, a3, a7, d4, d5, d6
 d1 =  0.1273
