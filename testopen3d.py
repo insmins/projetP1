@@ -2,6 +2,7 @@ import open3d as o3d
 import numpy as np
 from test_cube import tourner, translater, cube, centre, translater_cube, tourner_cube
 import polyscope as ps
+from testgramschmit import gramschmit
 
 # centre du cube de base
 Centre = centre[0]
@@ -91,13 +92,91 @@ best_cube_params, inliers, CENTER = ransac_cube(points, num_iterations=5000)
 # Angle matching
 pcl_inliers = pcl_downsampled.select_by_index(inliers)
 
-plane_model, inliersplane = pcl_inliers.segment_plane(distance_threshold=0.005, ransac_n=3, num_iterations=1000)
+# premier plan
+plane_model, inliersplane = pcl_inliers.segment_plane(distance_threshold=0.01, ransac_n=3, num_iterations=1000)
 inliersplane_cloud = pcl_inliers.select_by_index(inliersplane)
+outliersplane_cloud = pcl_inliers.select_by_index(inliersplane, invert=True)
+
+normales_1 = np.asarray(inliersplane_cloud.normals)
+
+normales_1 = [np.sign(np.dot(normales_1[i], normales_1[0])) * normales_1[i]  for i in range(normales_1.shape[0])]
+inliersplane_cloud.normals = o3d.utility.Vector3dVector(np.array(normales_1))
+moy_norm_1 = np.mean(inliersplane_cloud.normals, axis=0)
+moy_norm_1 = moy_norm_1 / np.linalg.norm(moy_norm_1)
+print(moy_norm_1)
 
 pcl_center = o3d.geometry.PointCloud()
 pcl_center.points = o3d.utility.Vector3dVector(np.array([CENTER]))
+pcl_center.normals = o3d.utility.Vector3dVector(np.array([moy_norm_1]))
 
 o3d.visualization.draw_geometries([inliersplane_cloud, pcl_center])
+
+# deuxieme plan
+plane_model, inliersplane = outliersplane_cloud.segment_plane(distance_threshold=0.005, ransac_n=3, num_iterations=1000)
+inliersplane_cloud = outliersplane_cloud.select_by_index(inliersplane)
+outliersplane_cloud = outliersplane_cloud.select_by_index(inliersplane, invert=True)
+
+normales_2 = np.asarray(inliersplane_cloud.normals)
+
+normales_2 = [np.sign(np.dot(normales_2[i], normales_2[0])) * normales_2[i]  for i in range(normales_2.shape[0])]
+inliersplane_cloud.normals = o3d.utility.Vector3dVector(np.array(normales_2))
+moy_norm_2 = np.mean(inliersplane_cloud.normals, axis=0)
+moy_norm_2 = moy_norm_2 / np.linalg.norm(moy_norm_2)
+print(moy_norm_2)
+
+pcl_center.normals = o3d.utility.Vector3dVector(np.array([moy_norm_2]))
+
+o3d.visualization.draw_geometries([inliersplane_cloud, pcl_center])
+
+angle = np.acos(np.dot(moy_norm_1, moy_norm_2))
+if angle > 1.57-0.52 and angle < 1.57+0.52:
+    print("oui")
+else:
+    print("non")
+
+
+# troisieme plan
+plane_model, inliersplane = outliersplane_cloud.segment_plane(distance_threshold=0.005, ransac_n=3, num_iterations=1000)
+inliersplane_cloud = outliersplane_cloud.select_by_index(inliersplane)
+outliersplane_cloud = outliersplane_cloud.select_by_index(inliersplane, invert=True)
+
+normales_3 = np.asarray(inliersplane_cloud.normals)
+
+normales_3 = [np.sign(np.dot(normales_3[i], normales_3[0])) * normales_3[i]  for i in range(normales_3.shape[0])]
+inliersplane_cloud.normals = o3d.utility.Vector3dVector(np.array(normales_3))
+moy_norm_3 = np.mean(inliersplane_cloud.normals, axis=0)
+moy_norm_3 = moy_norm_3 / np.linalg.norm(moy_norm_3)
+print(moy_norm_3)
+
+pcl_center.normals = o3d.utility.Vector3dVector(np.array([moy_norm_3]))
+
+o3d.visualization.draw_geometries([inliersplane_cloud, pcl_center])
+
+angle = np.acos(np.dot(moy_norm_1, moy_norm_3))
+angle2 = np.acos(np.dot(moy_norm_2, moy_norm_3))
+if angle > 1.57-0.52 and angle < 1.57+0.52 and angle2 > 1.57-0.52 and angle2 < 1.57+0.52:
+    print("oui")
+else:
+    print("non")
+
+
+
+u1, u2, u3 = gramschmit(moy_norm_1, moy_norm_2, moy_norm_3)
+
+pcl_center.points = o3d.utility.Vector3dVector(np.array([CENTER, CENTER, CENTER]))
+pcl_center.normals = o3d.utility.Vector3dVector(np.array([u1, u2, u3]))
+
+o3d.visualization.draw_geometries([pcl_inliers, pcl_center])
+
+VECTEUR = [0.0, 0, 0]
+for u in [u1, u2, u3]:
+    if np.abs(np.dot(u, [0.0, 0, 1])) > np.abs(np.dot(VECTEUR, [0.0, 0, 1])):
+        VECTEUR = u
+
+# A RETURN : VECTEUR ET CENTRE
+print(VECTEUR, CENTER)
+
+
 
 # best_center_normal = None
 # center_normal = [np.random.uniform(0, 1), np.random.uniform(0, 1), np.random.uniform(0, 1)]
