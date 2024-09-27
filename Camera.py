@@ -1,9 +1,9 @@
 """
 Class Camera et test cam
 """
-import time
 
 # imports
+import time
 import cv2
 import pyrealsense2 as rs
 import numpy as np
@@ -12,7 +12,6 @@ import matplotlib.tri as tri
 
 
 class Camera:
-
     def __init__(self):
         """
         Utilisation de la camera intel realsense
@@ -48,6 +47,7 @@ class Camera:
         self.xyz =[]
 
     def updateCam(self):
+        """Prise d'une photo et renvoie les différentes données réçues"""
         self.frames = self.pipeline.wait_for_frames()
         self.aligned_frames = self.align.process(self.frames)
 
@@ -57,6 +57,7 @@ class Camera:
         return self.frames, self.aligned_frames, self.aligned_depth_frame, self.color_frame
 
     def mask_jaune(self, hsv_img):
+        """Réalise un masque jaune sur l'image hsv"""
         # define range of yellow color in HSV
         lower_hsv = np.array([20, 110, 50])
         higher_hsv = np.array([50, 255, 255])
@@ -66,24 +67,27 @@ class Camera:
         return cv2.morphologyEx(mask, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_CROSS, (5, 5)))
 
     def mask_vert(self, hsv_img):
-        # define range of blue color in HSV
+        """Réalise un masque vert sur l'image hsv"""
+        # define range of green color in HSV
         lower_hsv = np.array([50, 150, 50])
         higher_hsv = np.array([85, 255, 255])
 
-        # generating mask for blue color
+        # generating mask for green color
         mask = cv2.inRange(hsv_img, lower_hsv, higher_hsv)
         return cv2.morphologyEx(mask, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_CROSS, (5, 5)))
 
     def mask_rouge(self, hsv_img):
-        # define range of blue color in HSV
+        """Réalise un masque rouge sur l'image hsv"""
+        # define range of red color in HSV
         lower_hsv = np.array([0, 80, 50])
         higher_hsv = np.array([16, 255, 255])
 
-        # generating mask for blue color
+        # generating mask for red color
         mask = cv2.inRange(hsv_img, lower_hsv, higher_hsv)
         return cv2.morphologyEx(mask, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_CROSS, (5, 5)))
 
     def mask_bleu(self, hsv_img):
+        """Réalise un masque bleu sur l'image hsv"""
         # define range of blue color in HSV
         lower_hsv = np.array([80, 50, 30])
         higher_hsv = np.array([150, 255, 255])
@@ -94,6 +98,7 @@ class Camera:
     
     
     def create_xyz(self, mask=None):
+        """Créer la liste des points (x,y,z) en alignant les depths"""
         depth_image = np.asanyarray(self.aligned_depth_frame.get_data())
 
         # retirer les valeurs aberrantes
@@ -116,6 +121,7 @@ class Camera:
         return self.xyz
     
     def create_triangle(self):
+        """Créer des triangles à partir des x, y, z"""
         touslesx = self.xyz[:, 0]
         touslesy = self.xyz[:, 1]
         touslesz = self.xyz[:, 2]
@@ -148,7 +154,7 @@ class Camera:
         
     def positionXYZ(self, pixel):
         """
-        A supp later, for test purpose
+        Calcule la position en mètres d'un pixel
         """
         if pixel is None:
             return
@@ -164,6 +170,7 @@ class Camera:
         return point
     
     def positions_xyz(self, xyz):
+        """Calcul les positions en mètre d'une liste de pixels"""
         positions = []
         for i, pixel in enumerate(xyz):
             if pixel[2] != 0:
