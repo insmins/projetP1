@@ -104,7 +104,7 @@ class Robot :
                         [0            , 0            ,1]])
         return Rz @ Ry @ Rx
 
-    def matrice_passage_normale(mat_rot,trans):
+    def matrice_passage_normale(self,mat_rot,trans):
         """
         Créer la matrice de passage 4x4 grâce à la matrice de rotation et le vecteur translation
         """
@@ -119,23 +119,22 @@ class Robot :
 if __name__ == "__main__":
     robot = Robot()
     pince = Pince()
-
-    # test des positions de  cam
     robot.bouger(robot.pos_init, 3, 1)
 
-    robot.bouger(robot.pos_cam_1, 3, 1)
-    robot.bouger(robot.pos_cam_2, 3, 1)
-    robot.bouger(robot.pos_cam_3, 3, 1)
+    # # test des positions de  cam
+    # robot.bouger(robot.pos_cam_1, 3, 1)
+    # robot.bouger(robot.pos_cam_2, 3, 1)
+    # robot.bouger(robot.pos_cam_3, 3, 1)
 
-    robot.bouger(robot.pos_init, 2, 0.3)
+    # robot.bouger(robot.pos_init, 2, 0.3)
 
-    robot.bouger(robot.pos_cam_4, 3, 1)
-    robot.bouger(robot.pos_cam_5, 2, 0.3)
+    # robot.bouger(robot.pos_cam_4, 3, 1)
+    # robot.bouger(robot.pos_cam_5, 2, 0.3)
 
-    robot.bouger(robot.pos_init, 2, 0.3)
+    # robot.bouger(robot.pos_init, 2, 0.3)
 
-    robot.bouger(robot.pos_cam_6, 2, 0.3)
-    robot.bouger(robot.pos_init,2)
+    # robot.bouger(robot.pos_cam_6, 2, 0.3)
+    # robot.bouger(robot.pos_init,2)
 
     # # test des positions de rangement
     # for _ in range(9) :
@@ -154,3 +153,14 @@ if __name__ == "__main__":
     # pos=matrice_to_pose(mat4x4)
     # # print("pose",pos)
     # robot.bouger(pos,0.5)
+
+    base = [[0.75129444, 0.1989721 , 0.62925891], [-0.06224083,  0.97058194, -0.23258715], [ 0.61880392,  0.11908506, -0.77646665]]
+    base=np.transpose(base)
+    mat_passage=robot.matrice_passage_normale(base,[-0.34039295,  0.15851469 , 0.19402046])
+    
+    pose_dessus_cube=matrice_to_pose(mat_passage)
+    pose_dessus_cube[4]+=np.pi
+    robot.bouger(pose_dessus_cube)
+    "je t'emmerde"
+
+    5
