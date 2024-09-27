@@ -232,16 +232,22 @@ class Cube:
     
     def main(self, cam, robot):
         """ toutes les fonctions à faire dans le bon ordre """
-        # self.create_points(cam, robot)
-        # self.create_maxi_points(robot,load=True)
-        self.load_maxi_points()
+        self.create_points(cam, robot)
+        self.create_maxi_points(robot)
         self.enlever_plateau()
         self.create_pointcloud3d()
         _, inliers, CENTRE = self.ransac_cube(np.asanyarray(self.pcl.points), num_iterations=5000)
         self.angle_matching(inliers)
         VECTEUR, u1, u2, u3 = self.better_vecteur()
-        return VECTEUR, [u1, u2, u3], CENTRE    
+        return VECTEUR, [u1, u2, u3], CENTRE
+
+
+
+
     
+                
+
+        
 
 if __name__=="__main__":
     cube=Cube()
