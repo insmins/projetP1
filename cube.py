@@ -213,7 +213,7 @@ class Cube:
 
             append = True
             for a in angles:
-                if a < np.pi/2 - np.pi/6 and a > np.pi/2 + np.pi/6:
+                if a < np.pi/2 - np.pi/6 or a > np.pi/2 + np.pi/6:
                     append = False
 
             if append:
@@ -257,8 +257,9 @@ if __name__=="__main__":
     vecteur, base, centre = cube.main(cam, robot)
     print(vecteur, base, centre)
 
+
     pcl_center=o3d.geometry.PointCloud()
-    pcl_center.points=o3d.utility.Vector3dVector(np.array([cube.centre,cube.centre,cube.centre]))
+    pcl_center.points=o3d.utility.Vector3dVector(np.array([centre,centre,centre]))
     pcl_center.normals=o3d.utility.Vector3dVector(np.array(base))
 
     o3d.visualization.draw_geometries([pcl_center,cube.pcl])

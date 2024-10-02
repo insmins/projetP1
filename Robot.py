@@ -4,7 +4,7 @@ Classe avec fonctions utiles pour le robot
 # import
 import rtde_receive
 import rtde_control
-from Transfo import create_matrice, matrice_to_pose
+from Transfo import create_matrice, matrice_to_pose, matrice_rotation_3x3
 import numpy as np
 from Pince import Pince
 import time
@@ -90,7 +90,7 @@ class Robot :
         """
         #conversion alpha, beta, gamma radian
         alpha=alpha*(np.pi/180)
-        beta=np.pi+beta*(np.pi/180)
+        beta=beta*(np.pi/180)
         gamma=gamma*(np.pi/180)
         #calcul des matrice de roation selon chaque
         Rx=np.asanyarray([[1,            0,             0],
@@ -154,16 +154,45 @@ if __name__ == "__main__":
     # # print("pose",pos)
     # robot.bouger(pos,0.5)
 
-    base = [[ 0.11318712, -0.05391406,  0.99210985], [-0.46113575,  0.88161765,  0.10051933], [ 0.98480458,  0.13845839, -0.10482946]]
+    # base = [[ 0.11318712, -0.05391406,  0.99210985], [-0.46113575,  0.88161765,  0.10051933], [ 0.98480458,  0.13845839, -0.10482946]]
+    # base = [[-0.04793601, -0.30520967, -0.95107791], [-0.69461502,  0.69442563, -0.18783776], [ 0.71778257,  0.65162901, -0.24529127]]
+    # centre = [-0.28892185, 0.13279266, 0.05123627]
+    # base = [[ 0.12309199, -0.05049066,  0.99111001], [-0.49897492, -0.86643296,  0.01783156], [ 0.85745872, -0.4973782 , -0.13183123]]
+    # centre = [-0.29210161, 0.13408612, 0.04832842]
+    # base = [[ 0.05669472, -0.11661385,  0.99155782], [ 0.85654028, -0.50458508, -0.10831735], [0.51383997, 0.85492922, 0.07116536]] 
+    # centre = [-0.2891642,  0.1290486,  0.04429216]
+    # base = matrice_rotation_3x3(np.asarray(robot.pos_init[3:]))
+    # centre = robot.pos_init[:3]
+
+    base = [[ 0.8782171 , -0.47219876, -0.07591475], [-0.4738714 , -0.88057377, -0.00597818],[-0.06402565,  0.04122396, -0.99709644]] 
+    # base = [[0.0, 0.0, 1.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0]]
+    centre = [-0.27295247, 0.17494993, 0.05353815]
     base=np.transpose(base)
-    mat_passage=robot.matrice_passage_normale(base,[-0.34039295,  0.15851469 , 0.04402046])
+    print(f'{base=}')
+
+    rot = robot.rotation(0, 0, 0)
+    base = base @ rot 
+    
+    print(f'{rot=}' )
+    print(f'{base=}')
+
+
+    mat_passage=robot.matrice_passage_normale(base, centre)
+    print(f'{mat_passage=}')
 
     M = [0]*3
-    M[0] = 0.15
+    # M[0] = 0.15
 
     M = mat_passage @ np.transpose(M+[1])
+    print(f'{M=}')
     
     mat_M = robot.matrice_passage_normale(base,np.transpose(M[:3]))
+
+    print(f'{mat_M=}')
     pose_dessus_cube=matrice_to_pose(mat_M)
-    pose_dessus_cube[4]+=np.pi
-    robot.bouger(pose_dessus_cube)
+    pose_dessus_cube[2] += 0.2
+    # pose_dessus_cube[4]+=np.pi  
+    # pose_dessus_cube[3]=0.135
+    print(f'{pose_dessus_cube=}')
+    robot.bouger(pose_dessus_cube, 0.3)
+    
