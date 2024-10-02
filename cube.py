@@ -221,26 +221,56 @@ class Cube:
 
     def better_vecteur(self):
         u1, u2, u3 = self.gramschmit(self.moyennes_normales[0], self.moyennes_normales[1], self.moyennes_normales[2])
-        base_directe=[]*3
+        base_directe=[None]*3
 
         VECTEUR = 0
-        vects = [u1, u2, u3]
+        vects = [u1.copy(), u2.copy(), u3.copy()]
         for i, u in enumerate(vects):
             if np.abs(np.dot(u, [0.0, 0, 1])) > np.abs(np.dot(vects[VECTEUR], [0.0, 0, 1])):
                 VECTEUR = i
         base_directe[2]=vects[VECTEUR]
         vects.pop(VECTEUR)
 
+        VECTEUR = 0
         for i, u in enumerate(vects):
             if np.abs(np.dot(u, [1.0, 0, 0])) > np.abs(np.dot(vects[VECTEUR], [1.0, 0, 0])):
                 VECTEUR = i
         base_directe[0]=vects[VECTEUR]
         vects.pop(VECTEUR)
 
-        if np.cross(base_directe[2], base_directe[0])==vects[0]:
-            base_directe[1]=vects[0]
-        else :
-            base_directe[1]= [-x for x in vects[0]]
+        # if np.cross(base_directe[2], base_directe[0])==vects[0]:
+        base_directe[1]=vects[0]
+        # else :
+        #     base_directe[1]= [-x for x in vects[0]]
+        if np.linalg.det(base_directe)<0:
+            base_directe[1]= [-x for x in base_directe[1]]
+
+        return base_directe
+    
+    def creer_base_directe(self, u1, u2, u3):
+        base_directe=[None]*3
+
+        VECTEUR = 0
+        vects = [u1.copy(), u2.copy(), u3.copy()]
+        for i, u in enumerate(vects):
+            if np.abs(np.dot(u, [0.0, 0, 1])) > np.abs(np.dot(vects[VECTEUR], [0.0, 0, 1])):
+                VECTEUR = i
+        base_directe[2]=vects[VECTEUR]
+        vects.pop(VECTEUR)
+
+        VECTEUR = 0
+        for i, u in enumerate(vects):
+            if np.abs(np.dot(u, [1.0, 0, 0])) > np.abs(np.dot(vects[VECTEUR], [1.0, 0, 0])):
+                VECTEUR = i
+        base_directe[0]=vects[VECTEUR]
+        vects.pop(VECTEUR)
+
+        # if np.cross(base_directe[2], base_directe[0])==vects[0]:
+        base_directe[1]=vects[0]
+        # else :
+        #     base_directe[1]= [-x for x in vects[0]]
+        if np.linalg.det(base_directe)<0:
+            base_directe[1]= [-x for x in base_directe[1]]
 
         return base_directe
     
@@ -252,8 +282,8 @@ class Cube:
         self.create_pointcloud3d()
         _, inliers, CENTRE = self.ransac_cube(np.asanyarray(self.pcl.points), num_iterations=5000)
         self.angle_matching(inliers)
-        VECTEUR, u1, u2, u3 = self.better_vecteur()
-        return VECTEUR, [u1, u2, u3], CENTRE
+        BASE = self.better_vecteur()
+        return BASE, CENTRE
 
 
 
@@ -268,8 +298,8 @@ if __name__=="__main__":
     robot=Robot()
     cam=Camera()
 
-    vecteur, base, centre = cube.main(cam, robot)
-    print(vecteur, base, centre)
+    base, centre = cube.main(cam, robot)
+    print(base, centre)
 
 
     pcl_center=o3d.geometry.PointCloud()

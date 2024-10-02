@@ -38,3 +38,14 @@
 ## video pour la segmentation du cube
 https://youtu.be/-OSVKbSsqT0?si=YsiDMUULMWDmbrLX
 
+
+
+## présentation
+expliquer le code de la pince, commenter, faire des parties claires etc
+readme
+expliquer nos calculs
+pour que quel que soit le robot on puisse adapter le code
+presentation ppt (pas enormement de slides)
+références etc
+préciser calibration
+

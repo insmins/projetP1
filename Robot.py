@@ -8,6 +8,7 @@ from Transfo import create_matrice, matrice_to_pose, matrice_rotation_3x3
 import numpy as np
 from Pince import Pince
 import time
+from Camera import Camera
 
 class Robot :
     def __init__(self):
@@ -117,6 +118,7 @@ class Robot :
 
 
 if __name__ == "__main__":
+    from cube import Cube
     robot = Robot()
     pince = Pince()
     robot.bouger(robot.pos_init, 3, 1)
@@ -163,14 +165,29 @@ if __name__ == "__main__":
     # centre = [-0.2891642,  0.1290486,  0.04429216]
     # base = matrice_rotation_3x3(np.asarray(robot.pos_init[3:]))
     # centre = robot.pos_init[:3]
-
-    base = [[ 0.8782171 , -0.47219876, -0.07591475], [-0.4738714 , -0.88057377, -0.00597818],[-0.06402565,  0.04122396, -0.99709644]] 
+    # base = [[-0.06402565,  0.04122396, -0.99709644], [ 0.8782171 , -0.47219876, -0.07591475], [-0.4738714 , -0.88057377, -0.00597818]] 
     # base = [[0.0, 0.0, 1.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0]]
-    centre = [-0.27295247, 0.17494993, 0.05353815]
+    # centre = [-0.27295247, 0.17494993, 0.05353815]
+    # base=cube.creer_base_directe(base[0], base[1], base[2])
+
+    cube=Cube()
+    robot=Robot()
+    cam=Camera()
+
+    base, centre = cube.main(cam, robot)
+    # print(base, centre)
+    # base = [[ 0.96153612,  0.25975672, -0.08930141], [np.float64(-0.26091364699558284), np.float64(0.9653602545721748), np.float64(-0.0019098962825697936)], [0.08571192, 0.02513639, 0.99600283]] 
+    # centre = [-0.28378925, 0.16210027, 0.0496929]
+
+    roty = 0
+    if base[2][2] > 0:
+        roty = 180
+
+
     base=np.transpose(base)
     print(f'{base=}')
 
-    rot = robot.rotation(0, 0, 0)
+    rot = robot.rotation(0, roty, 0)
     base = base @ rot 
     
     print(f'{rot=}' )
@@ -189,10 +206,18 @@ if __name__ == "__main__":
     mat_M = robot.matrice_passage_normale(base,np.transpose(M[:3]))
 
     print(f'{mat_M=}')
-    pose_dessus_cube=matrice_to_pose(mat_M)
+    pose_cube=matrice_to_pose(mat_M)
+    pose_cube[2] += 0.025
+    pose_dessus_cube = pose_cube.copy()
     pose_dessus_cube[2] += 0.2
     # pose_dessus_cube[4]+=np.pi  
     # pose_dessus_cube[3]=0.135
     print(f'{pose_dessus_cube=}')
     robot.bouger(pose_dessus_cube, 0.3)
+    robot.bouger(pose_cube)
+    pince.prise()
+    robot.bouger(pose_dessus_cube)
+    robot.bouger(robot.pos_init)
+    robot.rangement(pince)
+    robot.bouger(robot.pos_init)
     
