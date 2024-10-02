@@ -221,14 +221,28 @@ class Cube:
 
     def better_vecteur(self):
         u1, u2, u3 = self.gramschmit(self.moyennes_normales[0], self.moyennes_normales[1], self.moyennes_normales[2])
+        base_directe=[]*3
 
         VECTEUR = 0
         vects = [u1, u2, u3]
         for i, u in enumerate(vects):
             if np.abs(np.dot(u, [0.0, 0, 1])) > np.abs(np.dot(vects[VECTEUR], [0.0, 0, 1])):
                 VECTEUR = i
+        base_directe[2]=vects[VECTEUR]
+        vects.pop(VECTEUR)
 
-        return VECTEUR, u1, u2, u3
+        for i, u in enumerate(vects):
+            if np.abs(np.dot(u, [1.0, 0, 0])) > np.abs(np.dot(vects[VECTEUR], [1.0, 0, 0])):
+                VECTEUR = i
+        base_directe[0]=vects[VECTEUR]
+        vects.pop(VECTEUR)
+
+        if np.cross(base_directe[2], base_directe[0])==vects[0]:
+            base_directe[1]=vects[0]
+        else :
+            base_directe[1]= [-x for x in vects[0]]
+
+        return base_directe
     
     def main(self, cam, robot):
         """ toutes les fonctions à faire dans le bon ordre """
