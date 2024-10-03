@@ -18,7 +18,12 @@ class Robot :
     """
     Classe avec fonctions utiles pour le robot
     """
-    def __init__(self):
+    def __init__(self, IP = "10.2.30.60"):
+        """initialisation
+
+        Args:
+            IP (str, optional): IP du robot. Defaults to "10.2.30.60".
+        """
         # variable du robot
         self.num_cube = 0 #nombre de cube déposé (cf la fonction rangement)
         self.pos_init =[-0.27961,-0.11156, 0.23741, 0.135,-3.128, 0.144] #position de repos pour le robot
@@ -31,11 +36,12 @@ class Robot :
         self.pos_depot_cube = [-0.48118,-0.26843, 0.06306, 0.082,-3.120, 0.114] #premiere position pour déposer un cube
         self.delta_x = 0.083 #(en mm) decalage en x pour la pose des cubes 
         self.delta_y = 0.083 #(en mm) decalage en y pour la pose des cubes 
+        self.ip = IP # IP du robot
 
     def connexion(self):
         """Fonction pour se connecter au robot grâce à son IP"""
-        self.robot_r = rtde_receive.RTDEReceiveInterface("10.2.30.60")
-        self.robot_c = rtde_control.RTDEControlInterface("10.2.30.60")
+        self.robot_r = rtde_receive.RTDEReceiveInterface(self.ip)
+        self.robot_c = rtde_control.RTDEControlInterface(self.ip)
 
     def calcul_pos_relative(self, dx=0, dy=0, dz=0, pos = None):
         """

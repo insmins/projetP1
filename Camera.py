@@ -10,7 +10,6 @@ import time
 import cv2
 import pyrealsense2 as rs
 import numpy as np
-import matplotlib.tri as tri
 
 
 class Camera:
@@ -153,20 +152,6 @@ class Camera:
                 
         self.xyz = np.asanyarray(xyz)
         return self.xyz
-    
-    def create_triangle(self):
-        """Créer des triangles à partir des x, y, z
-
-        Returns:
-            tri.Triangulation: la liste des triangles (3 indices de points de la liste d'origine)
-        """
-        touslesx = self.xyz[:, 0]
-        touslesy = self.xyz[:, 1]
-        touslesz = self.xyz[:, 2]
-
-        # creation des triangles
-        triangles = tri.Triangulation(touslesx, touslesy)
-        return triangles
     
     def contours(self, mask):
         """détecte les contours des formes du masque

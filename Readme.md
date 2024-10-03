@@ -40,17 +40,17 @@ RANSAC, ou Random Sample Consensus est une méthode pour estimer des paramètres
 Dans le cas de la reconnaissance du cube, on estime une position du centre du cube et on calcule le nombre de points entre une distance minimale et une distance maximale. Dans un cube, cela correspond à la distance entre le centre et le centre d'une face pour le minimum, et entre le centre et un coin du cube pour le maximum.
 Ainsi, à la fin de ce Ransac, on obtient la position du centre, mais l'orientation de ce cube n'est pas assez précise.
 
+![Ransac de carré](/illu_ransac.png "Ransac de carré").
+
 #### Recherche de l'angle
-Dans la méthode pr
+Pour rendre l'orientation du cube plus précise, on récupère de la méthode précédente la position du centre du cube ainsi que les points appartenant au cube trouvé (les points à une certaine distance du centre).
+Les deux fonctions de Open3D utiles dans la recherche de l'angle sont le calcul de la normale de chaque point en fonction de ses voisins d'une part, et l'algorithme de Ransac fourni dans la librairie pour détecter un plan.
 
-
-### Détermination de la pose du robot pour prendre le cube en fonction de la base du cube
-
-Une fois le robot identifié ainsi que son centre. On isole un face, on calcule pour chaque point de cette face le vecteur normal, puis on calcule le vecteur moyen pour trouver la normale de la face. On réitère cette opération jusqu'à avoir 3 vecteurs suffisamment éloignés (dans des directions différentes). Une fois 3 vecteurs obtenus, on les orthogonalise suivant le procédé de Gram-Schmidt et on normalise la base pour avoir des vecteurs unitaires. Enfin, on vérifie que cette base est directe.
+La stratégie est de repérer un premier plan qui correspond à une face du cube. En calculant la normale des points de ce plan et en faisant la moyenne des normales, on obtient la normale de la face. Il suffit ensuite de recommencer 2 fois en s'assurant de ne pas prendre une face parallèle à une déjà prise pour obtenir une famille de vecteurs plus ou moins orthogonale. Une fois 3 vecteurs obtenus, on les orthogonalise suivant le procédé de Gram-Schmidt et on normalise la base pour avoir des vecteurs unitaires. Enfin, on vérifie que cette base est directe.
 
 ### Prise du cube et dépôt
 
-Une fois une base directe obtenu, on place les 3 vecteurs de la base en colonne dans une matrice 3x3 pour obtenir une matrice de rotation par rapport à la base du robot. On concatène la position du centre pour obtenir une matrice de passage 4x4 (la dernière ligne étant [ 0, 0, 0, 1]).
+Une fois une base directe obtenue, on place les 3 vecteurs de la base en colonne dans une matrice 3x3 pour obtenir une matrice de rotation par rapport à la base du robot. On concatène la position du centre pour obtenir une matrice de passage 4x4 (la dernière ligne étant [ 0, 0, 0, 1]).
 Une fois cette matrice de passage obtenu, on définit une position du robot au dessus du cube et une position de prise du cube.
 Une fois le cube pris, on le dépose à la position de rangement calculée en fonction du nombre de cube déja pris.
 
@@ -67,4 +67,20 @@ Une fois l'opération de dépôt effectuée, on réitère le procédé jusqu'à 
 ### cube.py
 
 ### Camera.py
+
+## Installation
+
+### Environnement Virtuel
+Le projet a été entièrement réalisé en Python. Le programme est fonctionnel pour les versions de Python entre `3.9.13` et `3.11.7`
+
+Les librairies nécessaires sont : (installables avec : `pip install nomdelalibrairie`)
+- `opencv-python` : pour le traitement de la caméra
+- `pyrealsense2` : API de la caméra
+- `numpy` : pour des calculs simples de matrices
+- `open3d` : pour le traitement et l'affichage des nuages de points en 3d
+- `ur-rtde` : API du robot UR-5
+
+### Environnement Physique
+
+
 
