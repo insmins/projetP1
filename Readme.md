@@ -11,15 +11,38 @@ La fiche du projet est disponible ici : [fiche projet](./UV_Projet_tri-robotise-
 ### Prise de photo
 
 Le robot possède 6 positions enregistrées pour prendre des photos.
-Lorsqu'une position est atteinte par le robot, la caméra prend une photo et crée une liste de points. Chaque point est stocké sous la forme "[pixel x, pixel y, profondeur]". Il est possible de stocker ces 6 listes de points en .txt grâce au paramètre "save" de la fonction cube.create_points.
+
+La librairie utilisée est `pyrealsense`.
+Lorsqu'une position est atteinte par le robot, la caméra prend une photo et crée une liste de points. Chaque point est stocké sous la forme "`[pixel x, pixel y, profondeur]`" 
 
 ### Création d'un nuage de points à partir des photos
 
-Une fois que les listes de points de chaque photo ont été créées, les pixels x et y sont convertis en positions x et y selon le repère de la caméra. Puis une liste mélant les points de toutes les images est créée en ramenant chaque point dans le repère du robot.
+Une fois que les listes de points de chaque photo ont été créées, les pixels x et y sont convertis en positions x et y selon le repère de la caméra grâce aux fonctions de `pyrealsense`. Puis une liste mêlant les points de toutes les images est créée en ramenant chaque point dans le repère du robot.
 
-### Repérage d'un cube avec un ransac
+Le repère de la caméra est comme suit :
 
-oé Inès pcq je sais pas comment qu'on a fait
+![Axes de la caméra](https://www.intelrealsense.com/wp-content/uploads/2019/02/LRS_CS_axis_base.png "Axes de la caméra").
+
+Il est possible de stocker ces 6 listes de points en .txt grâce au paramètre "save" de la fonction `cube.create_points`.
+
+### Repérage d'un cube avec un Ransac
+
+#### Pré-traitement
+La librairie Open3D permet d'effectuer un grand nombre d'opérations sur les nuages de points. Voici la liste des opérations de pré-traitement effectuées :
+- Création d'un objet `PointCloud`contenant les points 3D obtenus par la caméra
+- Suppression des points statistiquement aberrants
+- Sous-échantillonnage du nuage de points pour alléger les calculs
+- Calcul des normales des points
+
+#### La méthode Ransac
+RANSAC, ou Random Sample Consensus est une méthode pour estimer des paramètres mathématiques. Ici, on utilise cette méthode pour reconnaître un cube dans un nuage de points. La méthode consiste en un choix aléatoire de paramètres, effectué un nombre conséquent de fois, pour ne garder que les paramètres les plus proches de la réalité.
+
+Dans le cas de la reconnaissance du cube, on estime une position du centre du cube et on calcule le nombre de points entre une distance minimale et une distance maximale. Dans un cube, cela correspond à la distance entre le centre et le centre d'une face pour le minimum, et entre le centre et un coin du cube pour le maximum.
+Ainsi, à la fin de ce Ransac, on obtient la position du centre, mais l'orientation de ce cube n'est pas assez précise.
+
+#### Recherche de l'angle
+Dans la méthode pr
+
 
 ### Détermination de la pose du robot pour prendre le cube en fonction de la base du cube
 
