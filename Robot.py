@@ -171,7 +171,6 @@ if __name__ == "__main__":
     # base=cube.creer_base_directe(base[0], base[1], base[2])
 
     cube=Cube()
-    robot=Robot()
     cam=Camera()
 
     base, centre = cube.main(cam, robot)
@@ -179,40 +178,47 @@ if __name__ == "__main__":
     # base = [[ 0.96153612,  0.25975672, -0.08930141], [np.float64(-0.26091364699558284), np.float64(0.9653602545721748), np.float64(-0.0019098962825697936)], [0.08571192, 0.02513639, 0.99600283]] 
     # centre = [-0.28378925, 0.16210027, 0.0496929]
 
+    # base=np.array([[-0.92547062, -0.31436589,  0.20930943],       [-0.36437526,  0.89362171, -0.26388958],       [-0.10360888, -0.32033473, -0.94156883]])
+    # centre=np.array([-0.2767818 ,  0.15665482,  0.0477021 ])   
+
     roty = 0
     if base[2][2] > 0:
         roty = 180
 
-
     base=np.transpose(base)
     print(f'{base=}')
+    print(f'{centre=}')
 
     rot = robot.rotation(0, roty, 0)
     base = base @ rot 
     
-    print(f'{rot=}' )
-    print(f'{base=}')
+    # print(f'{rot=}' )
+    # print(f'{base=}')
 
 
     mat_passage=robot.matrice_passage_normale(base, centre)
-    print(f'{mat_passage=}')
+    # print(f'{mat_passage=}')
 
     M = [0]*3
-    # M[0] = 0.15
+    M[2] = -0.013
+    N= [0]*3
+    N[2]=-0.2
 
     M = mat_passage @ np.transpose(M+[1])
-    print(f'{M=}')
+    N = mat_passage @ np.transpose(N+[1])
+    # print(f'{M=}')
     
     mat_M = robot.matrice_passage_normale(base,np.transpose(M[:3]))
+    mat_N = robot.matrice_passage_normale(base,np.transpose(N[:3]))
 
-    print(f'{mat_M=}')
+    # print(f'{mat_M=}')
     pose_cube=matrice_to_pose(mat_M)
-    pose_cube[2] += 0.025
-    pose_dessus_cube = pose_cube.copy()
-    pose_dessus_cube[2] += 0.2
+    # pose_cube[2] += 0.01325
+    pose_dessus_cube = matrice_to_pose(mat_N)
+    # pose_dessus_cube[2] += 0.2
     # pose_dessus_cube[4]+=np.pi  
     # pose_dessus_cube[3]=0.135
-    print(f'{pose_dessus_cube=}')
+    # print(f'{pose_dessus_cube=}')
     robot.bouger(pose_dessus_cube, 0.3)
     robot.bouger(pose_cube)
     pince.prise()
