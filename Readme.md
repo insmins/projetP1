@@ -58,15 +58,45 @@ Une fois l'opération de dépôt effectuée, on réitère le procédé jusqu'à 
 
 ## Rendu 
 
+Le projet est trouvable sur le GItlab de l'IMT : 
 [Lien du gitlab](https://gvipers.imt-nord-europe.fr/ines.el.hadri/projetp1)
 
-### Robot.py
 
-### Pince.py
+### Objectifs atteints
 
-### cube.py
+Pour chaque itération : 
+- La détermination de la position des cubes est réalisée. On parvient à obtenir la position du centre du "meilleur" cube et l'orientation de celui-ci.
+- De cette position on parvient à calculer la position de prise où le robot doit se rendre.
+- Une fois le cube pris, le robot le pose à un emplacement définit.
 
-### Camera.py
+### Objectifs non traités et améliorations possibles
+
+Parmi les objectifs définits par le projet, la création d'un critère de "préhensibilité" n'a pas été réalisé. Nous avons testé uniquement des cas où le robot était capable d'aller, et n'avons pas eu le temps d'étudier le cas contraire.
+
+Dans les pistes d'améliorations, on peut citer :
+- Un meilleur calcul de l'orientation du cube, qui est, à ce stade, parfois en léger décalage avec l'orientation réelle du cube. Ce peut conduire à une mauvaise prise du cube, voir à une incapacité à prendre le cube alors que la position est bonne.
+- Redéfinir la zone de dépôt des cubes, non adaptée à la prise, parfois aléatoire, (cf. point précédent) des cubes.
+
+### [Robot.py](Robot.py)
+
+Le fichier [Robot.py](Robot.py) définit la classe `Robot` qui contient des variables de poses enregistrées du robots ainsi que les fonctions utiles pour faire fonctionner le robot et les fonctions réalisant les calculs liés au changement de base.
+
+### [Pince.py](Pince.py)
+
+Le fichier [Pince.py](Pince.py) définit la classe `Pince` qui contient les fonctions permettant la fermeture et l'ouverture de la pince. Seules les focntions `prise`et `lacher` sont à utiliser.
+
+### [Camera.py](Camera.py)
+
+Le fichier [Camera.py](Camera.py) définit la classe `Camera` qui contient les fonctions liées à la prise de photo par la caméra et le traitement des images obtenues pour créer des listes de points.
+
+### [cube.py](cube.py)
+
+Le fichier [cube.py](cube.py) définit la classe `Cube` contenant 
+
+### [projetP1.py](projetP1.py)
+
+Le fichier contient l'algorithme exécuté par le robot. Il appelle les focntions des différentes classes pour réaliser toutes les actions demandés depuis la prise de photo jusqu'à la dépose du dernier cube.
+
 
 ## Installation
 
@@ -81,6 +111,5 @@ Les librairies nécessaires sont : (installables avec : `pip install nomdelalibr
 - `ur-rtde` : API du robot UR-5
 
 ### Environnement Physique
-
 
 
