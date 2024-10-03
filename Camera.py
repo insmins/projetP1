@@ -1,5 +1,8 @@
 """
-Class Camera et test cam
+Nom du fichier : Camera.py
+Auteurs : Caux Mattéo, El Hadri Inès
+Date : 2024-10-03
+Description : classe permettant de communiquer avec la caméra Intel Realsense
 """
 
 # imports
@@ -7,15 +10,13 @@ import time
 import cv2
 import pyrealsense2 as rs
 import numpy as np
-# from filter_outliers import up_down_limits, removeOutliers
 import matplotlib.tri as tri
 
 
 class Camera:
+    """classe contenant les fonctions nécessaires pour communiquer avec la caméra intel realsense
+    """
     def __init__(self):
-        """
-        Utilisation de la camera intel realsense
-        """
         # Create a pipeline
         self.pipeline = rs.pipeline()
         config = rs.config()
@@ -47,7 +48,12 @@ class Camera:
         self.xyz =[]
 
     def updateCam(self):
-        """Prise d'une photo et renvoie les différentes données réçues"""
+        """Prise d'une photo et renvoie les différentes données recues.
+        Les stocke aussi dans des variables de la classe
+
+        Returns:
+            tuple: frames, aligned_frames, aligned_depth_frame, color_frame
+        """
         self.frames = self.pipeline.wait_for_frames()
         self.aligned_frames = self.align.process(self.frames)
 
@@ -57,17 +63,31 @@ class Camera:
         return self.frames, self.aligned_frames, self.aligned_depth_frame, self.color_frame
 
     def mask_jaune(self, hsv_img):
-        """Réalise un masque jaune sur l'image hsv"""
+        """Réalise un masque jaune sur l'image hsv
+
+        Args:
+            hsv_img (list): image en format hsv
+
+        Returns:
+            list: masque de l'image contenant le Jaune
+        """
         # define range of yellow color in HSV
         lower_hsv = np.array([20, 110, 50])
         higher_hsv = np.array([50, 255, 255])
 
-        # generating mask for blue color
+        # generating mask for yellow color
         mask = cv2.inRange(hsv_img, lower_hsv, higher_hsv)
         return cv2.morphologyEx(mask, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_CROSS, (5, 5)))
 
     def mask_vert(self, hsv_img):
-        """Réalise un masque vert sur l'image hsv"""
+        """Réalise un masque jaune sur l'image hsv
+
+        Args:
+            hsv_img (list): image en format hsv
+
+        Returns:
+            list: masque de l'image contenant le Vert
+        """
         # define range of green color in HSV
         lower_hsv = np.array([50, 150, 50])
         higher_hsv = np.array([85, 255, 255])
@@ -77,7 +97,14 @@ class Camera:
         return cv2.morphologyEx(mask, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_CROSS, (5, 5)))
 
     def mask_rouge(self, hsv_img):
-        """Réalise un masque rouge sur l'image hsv"""
+        """Réalise un masque rouge sur l'image hsv
+
+        Args:
+            hsv_img (list): image en format hsv
+
+        Returns:
+            list: masque de l'image contenant le Rouge
+        """
         # define range of red color in HSV
         lower_hsv = np.array([0, 80, 50])
         higher_hsv = np.array([16, 255, 255])
@@ -87,7 +114,14 @@ class Camera:
         return cv2.morphologyEx(mask, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_CROSS, (5, 5)))
 
     def mask_bleu(self, hsv_img):
-        """Réalise un masque bleu sur l'image hsv"""
+        """Réalise un masque bleu sur l'image hsv
+
+        Args:
+            hsv_img (list): image en format hsv
+
+        Returns:
+            list: masque de l'image contenant le Bleu
+        """
         # define range of blue color in HSV
         lower_hsv = np.array([80, 50, 30])
         higher_hsv = np.array([150, 255, 255])
@@ -98,20 +132,20 @@ class Camera:
     
     
     def create_xyz(self, mask=None):
-        """Créer la liste des points (x,y,z) en alignant les depths"""
+        """Créer la liste des points (x,y,z) en alignant les depths
+
+        Args:
+            mask (list, optional): Masque de couleur utilisé, si un masque est utilisé. Defaults to None.
+
+        Returns:
+            list: liste des points (x, y, z)
+        """
         depth_image = np.asanyarray(self.aligned_depth_frame.get_data())
 
-        # retirer les valeurs aberrantes
-        # flat_depth = depth_image.flatten()
-        # borne_inf, borne_sup = up_down_limits(flat_depth, 2)
-        # mediane = np.median(flat_depth)
-
-        # valeurs aberrantes = mediane et creation de la liste des points x, y, z
+        # creation de la liste des points x, y, z en retirant les points de depth 0
         xyz = []
         for x in range(depth_image.shape[0]):
             for y in range(depth_image.shape[1]):
-                # if depth_image[x, y] <=borne_inf or depth_image[x, y]>= borne_sup: #si en dehors des bornes alors valeur aberrante
-                #     depth_image[x, y] = mediane
                 if mask is None and depth_image[x, y] !=0 :
                     xyz.append([x, y, depth_image[x, y]])
                 elif mask is not None and mask[x, y] !=0 and depth_image[x, y] != 0 :
@@ -121,7 +155,11 @@ class Camera:
         return self.xyz
     
     def create_triangle(self):
-        """Créer des triangles à partir des x, y, z"""
+        """Créer des triangles à partir des x, y, z
+
+        Returns:
+            tri.Triangulation: la liste des triangles (3 indices de points de la liste d'origine)
+        """
         touslesx = self.xyz[:, 0]
         touslesy = self.xyz[:, 1]
         touslesz = self.xyz[:, 2]
@@ -131,8 +169,13 @@ class Camera:
         return triangles
     
     def contours(self, mask):
-        """
-        A supp later, for test purpose
+        """détecte les contours des formes du masque
+
+        Args:
+            mask (list): masque utilisé
+
+        Returns:
+            list: liste des contours trouvés
         """
         elements, hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
@@ -143,8 +186,13 @@ class Camera:
             return c
 
     def centre(self, mask):
-        """
-        A supp later, for test purpose
+        """permet de trouver le centre d'un objet grâce à ses contours
+
+        Args:
+            mask (list): masque utilisé
+
+        Returns:
+            tuple: pixel correspondant au centre de la forme
         """
         c = self.contours(mask)
         if c is not None:
@@ -153,8 +201,13 @@ class Camera:
             return int(x), int(y)
         
     def positionXYZ(self, pixel):
-        """
-        Calcule la position en mètres d'un pixel
+        """Calcule la position en mètres d'un pixel
+
+        Args:
+            pixel (tuple ou list): indices X et Y du pixel
+
+        Returns:
+            list: point avec coordonnées x, y et z en mètres
         """
         if pixel is None:
             return
@@ -170,7 +223,14 @@ class Camera:
         return point
     
     def positions_xyz(self, xyz):
-        """Calcul les positions en mètre d'une liste de pixels"""
+        """Calcul les positions en mètre d'une liste de pixels
+
+        Args:
+            xyz (list): image avec depth 
+
+        Returns:
+            list: positions 3d en mètres de chaque point
+        """
         positions = []
         for i, pixel in enumerate(xyz):
             if pixel[2] != 0:
@@ -179,6 +239,8 @@ class Camera:
 
 
 def main():
+    """exemple d'utilisation de la classe Camera
+    """
     cam = Camera()
     frames, aligned_frames, aligned_depth_frame, color_frame = cam.updateCam()
     # frame = np.asanyarray(color_frame.get_data())
@@ -201,7 +263,7 @@ def main():
     # cv2.imshow("Image", frame)
     depth_image = np.asanyarray(aligned_depth_frame.get_data())
     flat_depth=depth_image.flatten()
-    flat_depth=removeOutliers(flat_depth, 2)    
+    # flat_depth=removeOutliers(flat_depth, 2)    
     max_depth=depth_image.max()
     min_depth=depth_image.min()
 
