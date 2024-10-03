@@ -1,6 +1,13 @@
+"""
+Nom du fichier : Pince.py
+Auteur : Mattéo CAUX et Inès EL HADRI
+Date : 2024-10-02
+Description : Ce script contient la classe Pince et l'algorithme effectuant testants les actions de la classe
+"""
+
+#import
 import socket
 import time
-# from Robot import Robot
 
 class Pince :
     def __init__(self):
@@ -19,13 +26,16 @@ class Pince :
 
     def _action_pince(self, action):
         """
-        Fermer ou Ouvrir la pince en fonction de l'action demandée
-        action: "prise" ou "lacher"
+        Fermer ou Ouvrir la pince en fonction de l'action demandée.
+
+        Args:
+            action (string): "prise" ou "lacher"
         """
         # connecter la pince
         self.connexion()
 
-        if action == "prise":  # Changement de valeur de la sortie suivant le mouvement de pince à effectuer
+        # Changement de valeur de la sortie suivant le mouvement de pince à effectuer
+        if action == "prise": 
             self.robot.send(("set_standard_digital_out(0,True)" + "\n").encode('utf8'))
         elif action == "lacher":
             self.robot.send(("set_standard_digital_out(0,False)" + "\n").encode('utf8'))
@@ -40,7 +50,7 @@ class Pince :
         self.robot.close()
     
     def prise(self):
-        """Fermeture de a pince"""
+        """Fermeture de la pince"""
         self._action_pince("prise")
 
     def lacher(self):
