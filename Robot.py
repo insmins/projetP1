@@ -1,6 +1,10 @@
 """
-Classe avec fonctions utiles pour le robot
+Nom du fichier : Robot.py
+Auteur : Mattéo CAUX et Inès EL HADRI
+Date : 2024-10-02
+Description : Ce script contient la classe robot et l'algorithme effectuant toutes les actions
 """
+
 # import
 import rtde_receive
 import rtde_control
@@ -11,21 +15,22 @@ import time
 from Camera import Camera
 
 class Robot :
+    """
+    Classe avec fonctions utiles pour le robot
+    """
     def __init__(self):
         # variable du robot
-        self.num_cube = 0
-        self.pos_init =[-0.27961,-0.11156, 0.23741, 0.135,-3.128, 0.144] 
-        self.pos_depot_cube = [-0.48118,-0.26843, 0.06306, 0.082,-3.120, 0.114] #premiere position pour déposer un cube
+        self.num_cube = 0 #nombre de cube déposé (cf la fonction rangement)
+        self.pos_init =[-0.27961,-0.11156, 0.23741, 0.135,-3.128, 0.144] #position de repos pour le robot
         self.pos_cam_1 = [-0.22973, 0.06416, 0.29767, 0.059,-3.210, 0.160] #position de prise de photo
         self.pos_cam_2 = [-0.35594, 0.16063, 0.27617, 0.097, 2.538,-0.192] #position de prise de photo
         self.pos_cam_3 = [-0.14889,-0.02927, 0.20331, 0.196, 3.455, 0.276] #position de prise de photo
         self.pos_cam_4 = [-0.17349, 0.15271, 0.24970, 1.610, 2.644,-0.680] #position de prise de photo
         self.pos_cam_5 = [-0.21852, 0.08733, 0.25996, 2.090, 2.747,-0.771] #position de prise de photo
         self.pos_cam_6 = [-0.32933,-0.00430, 0.26788, 2.582,-2.630,-1.215] #position de prise de photo
+        self.pos_depot_cube = [-0.48118,-0.26843, 0.06306, 0.082,-3.120, 0.114] #premiere position pour déposer un cube
         self.delta_x = 0.083 #(en mm) decalage en x pour la pose des cubes 
         self.delta_y = 0.083 #(en mm) decalage en y pour la pose des cubes 
-        # self.correctif_pose=[0,0,0,0.0,-np.pi,0.0]#0.066/0.121
-
 
     def connexion(self):
         """Fonction pour se connecter au robot grâce à son IP"""
@@ -33,22 +38,45 @@ class Robot :
         self.robot_c = rtde_control.RTDEControlInterface("10.2.30.60")
 
     def calcul_pos_relative(self, dx=0, dy=0, dz=0, pos = None):
-        """Calcul une pose à partir d'une autre et d'un changement donné"""
+        """
+        Calcul une pose à partir d'une autre et d'un changement donné.
+
+        Args:
+            dx (float): variation selon l'axe x en mètre.
+            dy (float): variation selon l'axe y en mètre.
+            dz (float): variation selon l'axe z en mètre.
+            pos (list[float]): position à partir de laquelle on veut bouger.
+
+        Returns:
+            list[float] : La nouvelle position calculée
+        """
+        # si on veut la pose actuelle
         if pos is None :
             pos = self.robot_r.getActualTCPPose()
-        pos = [pos[0]+dx,pos[1]+dy,pos[2]+dz,pos[3],pos[4],pos[5]]
+        pos = [pos[0]+dx,pos[1]+dy,pos[2]+dz,pos[3],pos[4],pos[5]] # calcul de la nouvelle pose
         return pos
     
     def cam2base(self, objetCam, pose = None):
-        """Remet objetCam dans le référentiel du robot en fonction de la pose d'entrée"""
+        """
+        Remet objetCam dans le référentiel du robot en fonction de la pose d'entrée.
+        
+        Args:
+            objetCam (list[float]): les coordonnés du point à remettre dans la base du robot.
+            pose (list[float], optional): la position du robot à partir de laquelle faire le changement de base.
+        
+        Returns:
+            numpy.ndarray: les coordonnées du point dans la base du robot.
+        """
         objetCam = np.transpose(objetCam + [1])
         # si on veut la pose actuelle
         if pose == None:
             pose = self.robot_r.getActualTCPPose()
+        # matrice de changement entre la base de la cam et celle de la pince 
         T_cam2gripper = [[ 0.04853044,  0.99880257,  0.00618264,  0.10201555],
                         [-0.99542155,  0.047854,    0.08274014,  0.0217057 ],
                         [ 0.0823452,  -0.01016975,  0.99655198, -0.153],
-                        [ 0.  ,        0.    ,      0.   ,       1.        ]]      
+                        [ 0.  ,        0.    ,      0.   ,       1.        ]]     
+        # matrice de changement entre la base de la pince et celle du robot
         T_gripper2base = create_matrice(pose)
         res = T_gripper2base @ T_cam2gripper @ objetCam
         return res[:3]
@@ -59,13 +87,25 @@ class Robot :
         self.robot_c.disconnect()
 
     def bouger(self, pos, speed=0.5, acceleration=0.3):
-        """Déplacement du robot selon une pose donnéee"""
+        """
+        Déplacement du robot selon une pose donnée.
+
+        Args:
+            pos (list[float]): position à laquelle le robot doit aller.
+            speed (float, optional): vitesse du déplacement.
+            acceleration (float, optional): acceleration pour le déplacement.
+        """
         self.connexion()
         self.robot_c.moveL(pos, speed, acceleration)
         self.deconnexion()
 
     def rangement(self, pince: Pince):
-        """Dépot d'un cube à l'emplacement voulu"""
+        """
+        Dépot d'un cube à l'emplacement de rangement voulu en fonction du numéro de cube.
+        
+        Args:
+            pince (Pince): une instance de Pince.
+        """
         #calcul pos_rangement en fonction de self.num_cube
         pos_rangement= self.calcul_pos_relative(self.delta_x * (self.num_cube//3), self.delta_y* (self.num_cube%3), pos=self.pos_depot_cube)
 
@@ -79,15 +119,20 @@ class Robot :
         #remonter
         self.bouger(self.calcul_pos_relative(dz=0.1, pos=pos_rangement),1,5) #verif si z + ou -
 
-        #maj compteur cube
+        #update compteur cube
         self.num_cube +=1
     
     def rotation(self,gamma, beta,alpha): 
         """
         Calcul de la matrice de rotation 3x3 en fonction de alpha, beta et gamma.
-        Alpha : rotation selon X (en degré)
-        Beta : rotation selon y (en degré)
-        Gamma : rotation selon z (en degré)
+
+        Args:
+            Alpha (float): rotation selon X (en degré).
+            Beta (float): rotation selon y (en degré).
+            Gamma (float): rotation selon z (en degré).
+        
+        Returns:
+            numpy.ndarray: matrice de rotation 3x3.
         """
         #conversion alpha, beta, gamma radian
         alpha=alpha*(np.pi/180)
@@ -107,7 +152,14 @@ class Robot :
 
     def matrice_passage_normale(self,mat_rot,trans):
         """
-        Créer la matrice de passage 4x4 grâce à la matrice de rotation et le vecteur translation
+        Créer la matrice de passage 4x4 grâce à la matrice de rotation et le vecteur translation.
+
+        Args:
+            mat_rot (numpy.array): La matrice de rotation 3x3.
+            trans (list[float]): Le vecteur de translation.
+        
+        Returns:
+            numpy.array: La matrice de passage 4x4.
         """
         res=mat_rot.tolist()
         res.append([0,0,0,1])
@@ -116,9 +168,9 @@ class Robot :
         return np.asanyarray(res)
 
 
-
 if __name__ == "__main__":
     from cube import Cube
+    temps_debut=time.time()
     robot = Robot()
     pince = Pince()
     robot.bouger(robot.pos_init, 3, 1)
@@ -226,4 +278,7 @@ if __name__ == "__main__":
     robot.bouger(robot.pos_init)
     robot.rangement(pince)
     robot.bouger(robot.pos_init)
-    
+
+    temps_fin=time.time()
+    delta_temps=temps_fin-temps_debut
+    print(delta_temps)

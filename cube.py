@@ -1,3 +1,11 @@
+"""
+Nom du fichier : Cube.py
+Auteurs : Caux Mattéo, El Hadri Inès
+Date : 2024-10-02
+Description : classe permettant de reconnaitre un cube dans un nuage de points, et script de test
+"""
+
+# imports
 from Robot import Robot
 from Camera import Camera
 import numpy as np
@@ -5,10 +13,13 @@ import polyscope as ps
 import open3d as o3d
 
 class Cube:
+    """ classe permettant de reconnaitre un cube dans un nuage de points """
     def __init__(self):
         self.chemin_dossier="./photo_cam/"
         self.maxi_points=None
         self.len_points_cube = 2
+
+        # création d'un cube : ses 8 coins et le centre du cube
         self.x = np.asanyarray(np.linspace(0, 0.065, self.len_points_cube))
         self.y = self.x.copy()
         self.z = self.x.copy()
@@ -26,12 +37,17 @@ class Cube:
                 self.cube.append([self.x[i], self.y[j], self.z[-1]])
 
         self.cube = np.asanyarray(self.cube)
-
         self.centre = np.array([np.mean(self.x), np.mean(self.y), np.mean(self.z)])
 
 
     def create_points(self, cam: Camera, robot: Robot, save=False):
-        """creer chaque nuage de points selon positions de camera"""
+        """creer chaque nuage de points selon positions de camera
+
+        Args:
+            cam (Camera): caméra de la classe caméra pour prendre les photos
+            robot (Robot): robot de la classe Robot pour bouger dans les positions de prise de vue
+            save (bool, optional): activer la sauvegarde des nuages de points (numpy array) en .txt . Defaults to False.
+        """
         # positions de prise de vue
         pos_prise = [robot.pos_cam_1, robot.pos_cam_2, robot.pos_cam_3, robot.pos_cam_4, robot.pos_cam_5, robot.pos_cam_6]
 
@@ -56,8 +72,12 @@ class Cube:
 
     def create_maxi_points(self, robot, load=False, save=False):
         """CREER LA MAXI LISTE de points (prend du temps)
-        load et save un fichier txt si true
-        utilise cam_points et save dans maxipoints si false
+        Fusionne tous les nuages de points en les rapportant dans le repère du robot
+
+        Args:
+            robot (Robot): robot ayant pris les prises de vue pour convertir toutes les positions dans la base du robot
+            load (bool, optional): charger un fichier txt d'un numpy array au lieu d'utiliser les points enregistrés. Defaults to False.
+            save (bool, optional): sauvegarder la liste complète des points ramenés dans la base du robot. Defaults to False.
         """
 
         # Load points
@@ -77,12 +97,12 @@ class Cube:
             np.savetxt(self.chemin_dossier+"maxipoints.txt", self.maxi_points)
     
     def load_maxi_points(self):
-        """load la maxi liste au lieu de la créer"""
+        """charge le fichier texte de "maxipoints" (numpy array) pour effectuer des tests
+        """
         self.maxi_points = np.loadtxt(self.chemin_dossier+"maxipoints.txt") 
     
     def enlever_plateau(self):
-        """enlever les points plus bas que le plateau et trop a gauche, droite etc
-        a supprimer et remplacer par une analyse de couleurs ?
+        """enlever les points qui ne sont pas dans la zone de prise d'un cube (environnement)
         """
         # Filtrage des points dans la zone de travail
         xmin = -0.54
@@ -95,6 +115,15 @@ class Cube:
 
 
     def tourner(self,alpha, beta):
+        """effectue la rotation alpha, beta du centre du cube afin d'obtenir ses nouvelles coordonnées
+
+        Args:
+            alpha (float): angle de rotation selon x
+            beta (float): angle de rotation selon y
+
+        Returns:
+            np.array: Nouvelle position de cube, tourné
+        """
         a = self.centre[0]
         b = self.centre[1]
         c = self.centre[2]
@@ -104,10 +133,28 @@ class Cube:
             - a*np.cos(alpha)*np.sin(beta) - b*np.sin(alpha)*np.sin(beta) + c*np.cos(beta)])
                 
     def translater(self,vecteur,point):
+        """effectue la translation du point selon le vecteur afin d'obtenir ses nouvelles coordonnées
+
+        Args:
+            vecteur (list): vecteur à 3 dimensions
+            point (list): coordonnées du point à déplacer
+
+        Returns:
+            np.array: coordonnées du point déplacé
+        """
         [x, y, z] = vecteur
         return np.asanyarray([point[0] + x, point[1] + y, point[2] + z])
 
     def tourner_cube(self, alpha, beta):
+        """tourner tous les points du cube
+
+        Args:
+            alpha (float): angle selon x
+            beta (float): angle selon y
+
+        Returns:
+            list: nouveau cube tourné
+        """
         nouveau_cube = self.cube.copy()
         for p in nouveau_cube:
             a = p[0]
@@ -118,11 +165,29 @@ class Cube:
             p[2] = - a*np.cos(alpha)*np.sin(beta) - b*np.sin(alpha)*np.sin(beta) + c*np.cos(beta)
         return nouveau_cube
 
-    def translater_cube(self, point):
-        [x, y, z] = point
+    def translater_cube(self, vecteur):
+        """translater tous les points du cube
+
+        Args:
+            vecteur (list): vecteur de déplacement à 3 dimensions
+
+        Returns:
+            np.array: nouveau cube translaté
+        """
+        [x, y, z] = vecteur
         return np.asanyarray([[c[0] + x, c[1] + y, c[2] + z] for c in self.cube])
     
     def gramschmit(self, e1, e2, e3):
+        """algorithme de Gram-Schmidt pour orthonormer une famille libre
+
+        Args:
+            e1 (list): vecteur 1
+            e2 (list): vecteur 2
+            e3 (list): vecteur 3
+
+        Returns:
+            tuple: les 3 nouveaux vecteurs
+        """
         u1 = e1
         u2 = e2 - np.dot(e2, u1)*u1
         u3 = e3 - np.dot(e3, u1)*u1 - np.dot(e3, u2)*u2
@@ -134,8 +199,10 @@ class Cube:
         return u1, u2, u3
     
     def create_pointcloud3d(self, voxel_size=0.003):
-        """
-        crée un pointcloud open3d et effectue des traitements dessus
+        """crée un pointcloud open3d et effectue des traitements dessus
+
+        Args:
+            voxel_size (float, optional): taille du voxel pour supprimer des points. Defaults to 0.003.
         """
         self.pcl = o3d.geometry.PointCloud()
         self.pcl.points = o3d.utility.Vector3dVector(self.maxi_points)
@@ -154,8 +221,19 @@ class Cube:
         self.pcl.estimate_normals(search_param=o3d.geometry.KDTreeSearchParamHybrid(radius=0.1, max_nn=30))
 
     def ransac_cube(self, points, num_iterations=1000, threshold_max=0.058, threshold_min=0.0325):
-        """
-        Calcule le meilleur cube parmi num_iterations de cubes aléatoires
+        """Calcule le meilleur cube parmi num_iterations de cubes aléatoires en utilisant
+        une version modifiée de la méthode Ransac
+
+        Args:
+            points (array): nuage de points
+            num_iterations (int, optional): nombre d'itérations pour trouver le meilleur match. Defaults to 1000.
+            threshold_max (float, optional): valeur minimale de distance entre les points et le centre. Defaults to 0.058.
+            threshold_min (float, optional): valeur maximale de distance entre les points et le centre. Defaults to 0.0325.
+
+        Returns:
+            tuple: meilleurs paramètres (point d'un coin du cube, angle alpha, angle beta),
+                nuage de points contenant les points appartenant au cube trouvé
+                coordonnées du centre du cube
         """
         # contiennent le meilleur match
         best_params = None
@@ -192,7 +270,13 @@ class Cube:
         return best_params, best_inliers, best_centre
     
     def angle_matching(self, inliers):
-        # Angle matching
+        """le calcul du Ransac donne souvent une orientation peu précise, 
+        cet algorithme permet de trouver une rotation optimale pour le cube
+
+        Args:
+            inliers (list): liste des points du cube
+        """
+
         outliersplane_cloud = self.pcl.select_by_index(inliers)
 
         self.moyennes_normales = []
@@ -220,62 +304,55 @@ class Cube:
                 self.moyennes_normales.append(moy_norm)
 
     def better_vecteur(self):
+        """transforme les vecteurs du cube en une base orthonormée DIRECTE
+
+        Returns:
+            list: base directe de 3 vecteurs à 3 dimensions
+        """
+        # faire gramschmidt pour orthonormer la base
         u1, u2, u3 = self.gramschmit(self.moyennes_normales[0], self.moyennes_normales[1], self.moyennes_normales[2])
-        base_directe=[None]*3
-
-        VECTEUR = 0
-        vects = [u1.copy(), u2.copy(), u3.copy()]
-        for i, u in enumerate(vects):
-            if np.abs(np.dot(u, [0.0, 0, 1])) > np.abs(np.dot(vects[VECTEUR], [0.0, 0, 1])):
-                VECTEUR = i
-        base_directe[2]=vects[VECTEUR]
-        vects.pop(VECTEUR)
-
-        VECTEUR = 0
-        for i, u in enumerate(vects):
-            if np.abs(np.dot(u, [1.0, 0, 0])) > np.abs(np.dot(vects[VECTEUR], [1.0, 0, 0])):
-                VECTEUR = i
-        base_directe[0]=vects[VECTEUR]
-        vects.pop(VECTEUR)
-
-        # if np.cross(base_directe[2], base_directe[0])==vects[0]:
-        base_directe[1]=vects[0]
-        # else :
-        #     base_directe[1]= [-x for x in vects[0]]
-        if np.linalg.det(base_directe)<0:
-            base_directe[1]= [-x for x in base_directe[1]]
-
-        return base_directe
+        return self.creer_base_directe(u1, u2, u3)
     
     def creer_base_directe(self, u1, u2, u3):
+        """transforme une famille quelconque en une base orthonormée DIRECTE
+
+        Returns:
+            list: base directe de 3 vecteurs à 3 dimensions
+        """
         base_directe=[None]*3
 
-        VECTEUR = 0
+        # remettre la base dans le bon ordre (plus proche de x, plus proche de y, plus proche de z)
+        VECTEUR1 = 0
+        VECTEUR2 = 0
         vects = [u1.copy(), u2.copy(), u3.copy()]
         for i, u in enumerate(vects):
-            if np.abs(np.dot(u, [0.0, 0, 1])) > np.abs(np.dot(vects[VECTEUR], [0.0, 0, 1])):
-                VECTEUR = i
-        base_directe[2]=vects[VECTEUR]
-        vects.pop(VECTEUR)
+            if np.abs(np.dot(u, [0.0, 0, 1])) > np.abs(np.dot(vects[VECTEUR1], [0.0, 0, 1])):
+                VECTEUR1 = i
+            if np.abs(np.dot(u, [1.0, 0, 0])) > np.abs(np.dot(vects[VECTEUR2], [1.0, 0, 0])):
+                VECTEUR2 = i
+        base_directe[2]=vects[VECTEUR1]
+        vects.pop(VECTEUR1)
+        base_directe[0]=vects[VECTEUR2]
+        vects.pop(VECTEUR2)      
 
-        VECTEUR = 0
-        for i, u in enumerate(vects):
-            if np.abs(np.dot(u, [1.0, 0, 0])) > np.abs(np.dot(vects[VECTEUR], [1.0, 0, 0])):
-                VECTEUR = i
-        base_directe[0]=vects[VECTEUR]
-        vects.pop(VECTEUR)
-
-        # if np.cross(base_directe[2], base_directe[0])==vects[0]:
         base_directe[1]=vects[0]
-        # else :
-        #     base_directe[1]= [-x for x in vects[0]]
+
+        # vérifier que c'est direct
         if np.linalg.det(base_directe)<0:
             base_directe[1]= [-x for x in base_directe[1]]
 
         return base_directe
     
     def main(self, cam, robot):
-        """ toutes les fonctions à faire dans le bon ordre """
+        """toutes les fonctions à faire dans le bon ordre
+
+        Args:
+            cam (Camera): caméra prenant les photos
+            robot (Robot): robot effectuant le mouvement
+
+        Returns:
+            tuple: base du cube trouvée, et centre du cube
+        """
         self.create_points(cam, robot)
         self.create_maxi_points(robot)
         self.enlever_plateau()
@@ -286,10 +363,7 @@ class Cube:
         return BASE, CENTRE
 
 
-
-
-    
-                
+           
 
         
 

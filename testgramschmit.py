@@ -1,8 +1,14 @@
+"""
+Nom du fichier : testgralschmidt.py
+Auteur : Mattéo CAUX et Inès EL HADRI
+Date : 2024-10-02
+Description : Ce script contient des fonctions pour orthogonaliser une base et la rendre directe
+"""
+
+#import
 import open3d as o3d
 import numpy as np
 import polyscope as ps
-
-
 
 def gramschmit(e1, e2, e3):
     u1 = e1
