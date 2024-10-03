@@ -37,6 +37,23 @@ class Robot :
         self.robot_r = rtde_receive.RTDEReceiveInterface("10.2.30.60")
         self.robot_c = rtde_control.RTDEControlInterface("10.2.30.60")
 
+    def deconnexion(self): 
+        """Déconnexion du robot"""
+        self.robot_c.disconnect()
+
+    def bouger(self, pos, speed=0.5, acceleration=0.3):
+        """
+        Déplacement du robot selon une pose donnée.
+
+        Args:
+            pos (list[float]): position à laquelle le robot doit aller.
+            speed (float, optional): vitesse du déplacement.
+            acceleration (float, optional): acceleration pour le déplacement.
+        """
+        self.connexion()
+        self.robot_c.moveL(pos, speed, acceleration)
+        self.deconnexion()
+
     def calcul_pos_relative(self, dx=0, dy=0, dz=0, pos = None):
         """
         Calcul une pose à partir d'une autre et d'un changement donné.
@@ -55,6 +72,29 @@ class Robot :
             pos = self.robot_r.getActualTCPPose()
         pos = [pos[0]+dx,pos[1]+dy,pos[2]+dz,pos[3],pos[4],pos[5]] # calcul de la nouvelle pose
         return pos
+
+    def rangement(self, pince: Pince):
+        """
+        Dépot d'un cube à l'emplacement de rangement voulu en fonction du numéro de cube.
+        
+        Args:
+            pince (Pince): une instance de Pince.
+        """
+        #calcul pos_rangement en fonction de self.num_cube
+        pos_rangement= self.calcul_pos_relative(self.delta_x * (self.num_cube//3), self.delta_y* (self.num_cube%3), pos=self.pos_depot_cube)
+
+        #bouger à pos_rangement (avec pos_intermediaire au dessus)
+        self.bouger(self.calcul_pos_relative(dz=0.1, pos=pos_rangement),1,5) #verif si z + ou -
+        self.bouger(pos_rangement, 0.5, 0.3)  
+        
+        #lacher
+        pince.lacher()
+        
+        #remonter
+        self.bouger(self.calcul_pos_relative(dz=0.1, pos=pos_rangement),1,5) #verif si z + ou -
+
+        #update compteur cube
+        self.num_cube +=1
     
     def cam2base(self, objetCam, pose = None):
         """
@@ -80,47 +120,6 @@ class Robot :
         T_gripper2base = create_matrice(pose)
         res = T_gripper2base @ T_cam2gripper @ objetCam
         return res[:3]
-
-
-    def deconnexion(self): 
-        """Déconnexion du robot"""
-        self.robot_c.disconnect()
-
-    def bouger(self, pos, speed=0.5, acceleration=0.3):
-        """
-        Déplacement du robot selon une pose donnée.
-
-        Args:
-            pos (list[float]): position à laquelle le robot doit aller.
-            speed (float, optional): vitesse du déplacement.
-            acceleration (float, optional): acceleration pour le déplacement.
-        """
-        self.connexion()
-        self.robot_c.moveL(pos, speed, acceleration)
-        self.deconnexion()
-
-    def rangement(self, pince: Pince):
-        """
-        Dépot d'un cube à l'emplacement de rangement voulu en fonction du numéro de cube.
-        
-        Args:
-            pince (Pince): une instance de Pince.
-        """
-        #calcul pos_rangement en fonction de self.num_cube
-        pos_rangement= self.calcul_pos_relative(self.delta_x * (self.num_cube//3), self.delta_y* (self.num_cube%3), pos=self.pos_depot_cube)
-
-        #bouger à pos_rangement (avec pos_intermediaire au dessus)
-        self.bouger(self.calcul_pos_relative(dz=0.1, pos=pos_rangement),1,5) #verif si z + ou -
-        self.bouger(pos_rangement, 0.5, 0.3)  
-        
-        #lacher
-        pince.lacher()
-        
-        #remonter
-        self.bouger(self.calcul_pos_relative(dz=0.1, pos=pos_rangement),1,5) #verif si z + ou -
-
-        #update compteur cube
-        self.num_cube +=1
     
     def rotation(self,gamma, beta,alpha): 
         """
