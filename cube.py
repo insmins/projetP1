@@ -53,13 +53,13 @@ class Cube:
 
         for i in range(6):
             # init puis position camera
-            robot.bouger(robot.pos_init, 2)
-            robot.bouger(pos_prise[i])
+            robot.bouger(robot.pos_init, 2,2)
+            robot.bouger(pos_prise[i],2,2)
             
             # prendre photo
             cam.updateCam()
             xyz = cam.create_xyz()
-            print(len(xyz))
+            # print(len(xyz))
             pos = cam.positions_xyz(xyz)
 
             # sauvegarder les points
@@ -68,7 +68,7 @@ class Cube:
                 np.savetxt(self.chemin_dossier+f"uncube_cam_{i}.txt", pos)
 
         # init
-        robot.bouger(robot.pos_init, 2)
+        robot.bouger(robot.pos_init, 2,2)
 
     def create_maxi_points(self, robot, load=False, save=False):
         """CREER LA MAXI LISTE de points (prend du temps)
@@ -324,18 +324,18 @@ class Cube:
         # remettre la base dans le bon ordre (plus proche de x, plus proche de y, plus proche de z)
         VECTEUR1 = 0
         VECTEUR2 = 0
+        VECTEUR3 = 0
         vects = [u1.copy(), u2.copy(), u3.copy()]
         for i, u in enumerate(vects):
             if np.abs(np.dot(u, [0.0, 0, 1])) > np.abs(np.dot(vects[VECTEUR1], [0.0, 0, 1])):
                 VECTEUR1 = i
-            if np.abs(np.dot(u, [1.0, 0, 0])) > np.abs(np.dot(vects[VECTEUR2], [1.0, 0, 0])):
+            elif np.abs(np.dot(u, [1.0, 0, 0])) > np.abs(np.dot(vects[VECTEUR2], [1.0, 0, 0])):
                 VECTEUR2 = i
+            else:
+                VECTEUR3 = i
         base_directe[2]=vects[VECTEUR1]
-        vects.pop(VECTEUR1)
         base_directe[0]=vects[VECTEUR2]
-        vects.pop(VECTEUR2)      
-
-        base_directe[1]=vects[0]
+        base_directe[1]=vects[VECTEUR3]
 
         # vérifier que c'est direct
         if np.linalg.det(base_directe)<0:
