@@ -30,7 +30,7 @@ Il est possible de stocker ces 6 listes de points en .txt grâce au paramètre "
 #### Pré-traitement
 La librairie Open3D permet d'effectuer un grand nombre d'opérations sur les nuages de points. Voici la liste des opérations de pré-traitement effectuées :
 - Création d'un objet `PointCloud`contenant les points 3D obtenus par la caméra
-- Suppression des points statistiquement aberrants
+- Suppression des points statistiquement aberrants et des points hors de la zone de travail
 - Sous-échantillonnage du nuage de points pour alléger les calculs
 - Calcul des normales des points
 

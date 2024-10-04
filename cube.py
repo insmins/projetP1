@@ -204,7 +204,7 @@ class Cube:
 
         return u1, u2, u3
     
-    def create_pointcloud3d(self, voxel_size=0.003):
+    def create_pointcloud3d(self, voxel_size=0.002):
         """crée un pointcloud open3d et effectue des traitements dessus
 
         Args:
@@ -224,7 +224,7 @@ class Cube:
         self.pcl = pcl_downsampled
 
         # normal calculation
-        self.pcl.estimate_normals(search_param=o3d.geometry.KDTreeSearchParamHybrid(radius=0.1, max_nn=30))
+        # self.pcl.estimate_normals(search_param=o3d.geometry.KDTreeSearchParamHybrid(radius=0.1, max_nn=30))
 
     def ransac_cube(self, points, num_iterations=1000):
         """Calcule le meilleur cube parmi num_iterations de cubes aléatoires en utilisant
@@ -290,11 +290,12 @@ class Cube:
 
         self.moyennes_normales = []
         while len(self.moyennes_normales) != 3:
-            _, inliersplane = outliersplane_cloud.segment_plane(distance_threshold=0.005, ransac_n=3, num_iterations=1000)
+            _, inliersplane = outliersplane_cloud.segment_plane(distance_threshold=0.003, ransac_n=3, num_iterations=1000)
             inliersplane_cloud = outliersplane_cloud.select_by_index(inliersplane)
             outliersplane_cloud = outliersplane_cloud.select_by_index(inliersplane, invert=True)
 
             # compute the mean of all the normals in the plane
+            inliersplane_cloud.estimate_normals(search_param=o3d.geometry.KDTreeSearchParamHybrid(radius=0.1, max_nn=30))
             normales = np.asarray(inliersplane_cloud.normals)
 
             normales = [np.sign(np.dot(normales[i], normales[0])) * normales[i]  for i in range(normales.shape[0])]
@@ -309,8 +310,17 @@ class Cube:
                 if a < np.pi/2 - np.pi/6 or a > np.pi/2 + np.pi/6:
                     append = False
 
+
             if append:
                 self.moyennes_normales.append(moy_norm)
+
+            # expliquer todo
+            if len(outliersplane_cloud.points) < 3:
+                if len(self.moyennes_normales) == 2:
+                    self.moyennes_normales.append(np.cross(self.moyennes_normales[0], self.moyennes_normales[1]))
+                else:
+                    raise RuntimeError("Cube non trouvé")
+
 
     def better_vecteur(self):
         """transforme les vecteurs du cube en une base orthonormée DIRECTE
@@ -368,9 +378,18 @@ class Cube:
         self.create_points(cam, robot)
         self.create_maxi_points(robot)
         self.enlever_plateau()
-        self.create_pointcloud3d()
-        _, inliers, CENTRE = self.ransac_cube(np.asanyarray(self.pcl.points), num_iterations=5000)
+        self.create_pointcloud3d(voxel_size=0.001)
+        _, inliers, CENTRE = self.ransac_cube(np.asanyarray(self.pcl.points), num_iterations=3000)
+
+        inlier_cloud = self.pcl.select_by_index(inliers)
+
         self.angle_matching(inliers)
+
+        centre_cloud = o3d.geometry.PointCloud()
+        centre_cloud.points = o3d.utility.Vector3dVector(np.array([CENTRE, CENTRE, CENTRE]))
+        centre_cloud.normals = o3d.utility.Vector3dVector(np.array(self.moyennes_normales)*10)
+        o3d.visualization.draw_geometries([inlier_cloud, centre_cloud])
+
         BASE = self.better_vecteur()
         return BASE, CENTRE
 
