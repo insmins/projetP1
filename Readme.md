@@ -1,10 +1,12 @@
-# Projet P1 Inès EL HADRI et Mattéo CAUX    
+# Projet P1 Inès EL HADRI et Mattéo CAUX   
+
+![espace de travail](/documentation/espace_travail_1.jpg)
 
 ## Description du projet
 
 L’objectif de ce projet est de développer une application pilotant un robot UR-5 afin que ce dernier soit capable de saisir et de ranger un ensemble de cubes posés en « vrac » dans l’espace de travail du robot : les cubes sont initialement placés de manière désordonnée, si bien que leur orientation peut être quelconque (c’est-à-dire que les normales aux faces des cubes peuvent être en dehors d’un plan horizontal ou d’un plan vertical). A l’aide d’une caméra de profondeur de type « real sense », le système doit d’abord analyser son environnement en construisant un nuage de points. Sur la base de ce dernier, il tente de détecter et d’estimer la pose des cubes présents. Cette pose étant disponible, l’application doit sélectionner les cubes jugés « préhensible » (critères à définir) par le robot, déterminer une trajectoire d’accostage et de « capture » de ces cubes pour les disposer de manière régulière dans un contenant ou sur l’espace de travail.
 
-La fiche du projet est disponible ici : [fiche projet](./UV_Projet_tri-robotise-prise-pieces-vrac.pdf)
+La fiche du projet est disponible ici : [fiche projet](/documentation/UV_Projet_tri-robotise-prise-pieces-vrac.pdf)
 
 ## Etapes de réalisation
 
@@ -40,7 +42,9 @@ RANSAC, ou Random Sample Consensus est une méthode pour estimer des paramètres
 Dans le cas de la reconnaissance du cube, on estime une position du centre du cube et on calcule le nombre de points entre une distance minimale et une distance maximale. Dans un cube, cela correspond à la distance entre le centre et le centre d'une face pour le minimum, et entre le centre et un coin du cube pour le maximum.
 Ainsi, à la fin de ce Ransac, on obtient la position du centre, mais l'orientation de ce cube n'est pas assez précise.
 
-![Ransac de carré](/illu_ransac.png "Ransac de carré").
+![Ransac de carré](/documentation/illu_ransac.png "Ransac de carré").
+
+![Cubes détectés](/documentation/cubes_detectes.jpg)
 
 #### Recherche de l'angle
 Pour rendre l'orientation du cube plus précise, on récupère de la méthode précédente la position du centre du cube ainsi que les points appartenant au cube trouvé (les points à une certaine distance du centre).
@@ -77,23 +81,34 @@ Dans les pistes d'améliorations, on peut citer :
 - Un meilleur calcul de l'orientation du cube, qui est, à ce stade, parfois en léger décalage avec l'orientation réelle du cube. Ce peut conduire à une mauvaise prise du cube, voir à une incapacité à prendre le cube alors que la position est bonne.
 - Redéfinir la zone de dépôt des cubes, non adaptée à la prise, parfois aléatoire, (cf. point précédent) des cubes.
 
-### [Robot.py](Robot.py)
+### [Robot.py](/Robot.py)
 
-Le fichier [Robot.py](Robot.py) définit la classe `Robot` qui contient des variables de poses enregistrées du robots ainsi que les fonctions utiles pour faire fonctionner le robot et les fonctions réalisant les calculs liés au changement de base.
+Le fichier [Robot.py](/Robot.py) définit la classe `Robot` qui contient des variables de poses enregistrées du robots ainsi que les fonctions utiles pour faire fonctionner le robot et les fonctions réalisant les calculs liés au changement de base pour déterminer les poses du robot.
 
-### [Pince.py](Pince.py)
+### [Pince.py](/Pince.py)
 
-Le fichier [Pince.py](Pince.py) définit la classe `Pince` qui contient les fonctions permettant la fermeture et l'ouverture de la pince. Seules les focntions `prise`et `lacher` sont à utiliser.
+Le fichier [Pince.py](/Pince.py) définit la classe `Pince` qui contient les fonctions permettant la fermeture et l'ouverture de la pince. Seules les focntions `prise`et `lacher` sont à utiliser.
 
-### [Camera.py](Camera.py)
+La classe Pince active en réalité le programme sur le robot : 
+![photo programme robot](/documentation/programme_pince_2.jpg)
 
-Le fichier [Camera.py](Camera.py) définit la classe `Camera` qui contient les fonctions liées à la prise de photo par la caméra et le traitement des images obtenues pour créer des listes de points.
+La fonction `prise` met `digital_out[0]` à 1, ce qui permet d'activer la commande `2FG Grip (35)` 
 
-### [cube.py](cube.py)
+![2FG Grip](/documentation/programme_pince_3.jpg)
 
-Le fichier [cube.py](cube.py) définit la classe `Cube` contenant 
+La fonction `lacher` met `digital_out[0]` à 0, ce qui permet d'activer la commande `Relâchement 2FG (71.0)` 
 
-### [projetP1.py](projetP1.py)
+![Relâchement 2FG](/documentation/programme_pince_1.jpg)
+
+### [Camera.py](/Camera.py)
+
+Le fichier [Camera.py](/Camera.py) définit la classe `Camera` qui contient les fonctions liées à la prise de photo par la caméra.
+
+### [cube.py](/cube.py)
+
+Le fichier [cube.py](/cube.py) définit la classe `Cube` contenant les fonctions de création des listes de points et leur regroupement dans une seule liste. Elle contient aussi les fonctions qui traitent les listes de points permettant la détection d'un cube avec la méthode Ransac et celles qui déterminent le centre et la base du robot.
+
+### [projetP1.py](/projetP1.py)
 
 Le fichier contient l'algorithme exécuté par le robot. Il appelle les focntions des différentes classes pour réaliser toutes les actions demandés depuis la prise de photo jusqu'à la dépose du dernier cube.
 
@@ -112,4 +127,15 @@ Les librairies nécessaires sont : (installables avec : `pip install nomdelalibr
 
 ### Environnement Physique
 
+Le projet a été réalisé avec un robot UR5.
 
+![robot UR5](/documentation/espace_travail_1.jpg)
+
+Une pince 2GF de On robot est fixé sur le robot ainsi qu'une caméra Real Sense 
+
+![pince 2FG](/documentation/pince_robot.jpg)
+![pince et camera](/documentation/pince_cam.jpg)
+
+L'espace de travail du robot est recouvert d'imprimés de bruit gaussien pour avoir uen meilleure perception de la profondeur par la caméra.
+
+![espace de travail](/documentation/espace_travail_2.jpg)
