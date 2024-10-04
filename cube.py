@@ -14,13 +14,19 @@ import open3d as o3d
 
 class Cube:
     """ classe permettant de reconnaitre un cube dans un nuage de points """
-    def __init__(self):
+    def __init__(self, taille_cube=0.065):
+        """initialisation
+
+        Args:
+            taille_cube (float, optional): taille d'une arête du cube. Defaults to 0.065.
+        """
         self.chemin_dossier="./photo_cam/"
         self.maxi_points=None
         self.len_points_cube = 2
+        self.taille_cube = taille_cube
 
         # création d'un cube : ses 8 coins et le centre du cube
-        self.x = np.asanyarray(np.linspace(0, 0.065, self.len_points_cube))
+        self.x = np.asanyarray(np.linspace(0, taille_cube, self.len_points_cube))
         self.y = self.x.copy()
         self.z = self.x.copy()
         self.cube = []
@@ -220,21 +226,24 @@ class Cube:
         # normal calculation
         self.pcl.estimate_normals(search_param=o3d.geometry.KDTreeSearchParamHybrid(radius=0.1, max_nn=30))
 
-    def ransac_cube(self, points, num_iterations=1000, threshold_max=0.058, threshold_min=0.0325):
+    def ransac_cube(self, points, num_iterations=1000):
         """Calcule le meilleur cube parmi num_iterations de cubes aléatoires en utilisant
         une version modifiée de la méthode Ransac
 
         Args:
             points (array): nuage de points
             num_iterations (int, optional): nombre d'itérations pour trouver le meilleur match. Defaults to 1000.
-            threshold_max (float, optional): valeur minimale de distance entre les points et le centre. Defaults to 0.058.
-            threshold_min (float, optional): valeur maximale de distance entre les points et le centre. Defaults to 0.0325.
 
         Returns:
             tuple: meilleurs paramètres (point d'un coin du cube, angle alpha, angle beta),
                 nuage de points contenant les points appartenant au cube trouvé
                 coordonnées du centre du cube
         """
+        # calcul des valeurs minimale et maximale de distance entre les points et le centre. Marge de 4%
+        threshold_max = 1.04 * self.taille_cube * np.sqrt(3)/2  # Distance entre centre du cube et coin
+        threshold_min = 0.96 * self.taille_cube / 2  # Distance entre centre du cube et centre d'une face
+
+
         # contiennent le meilleur match
         best_params = None
         best_number = -1
@@ -257,7 +266,7 @@ class Cube:
                 dist = np.sqrt((p[0]-centre[0])**2 + (p[1]-centre[1])**2 + (p[2]-centre[2])**2)
 
                 # threshold max et min = on regarde si le point est entre le point le plus éloigné
-                # et le moins éloigné du centre (entre le centre d'une face ~ 0.0325 et un coin du cube ~ 0.06)
+                # et le moins éloigné du centre (entre le centre d'une face = threshold_min, et un coin du cube = threshold_max)
                 if dist < threshold_max and dist > threshold_min:
                     inliers.append(i)
                     n += 1
@@ -322,20 +331,23 @@ class Cube:
         base_directe=[None]*3
 
         # remettre la base dans le bon ordre (plus proche de x, plus proche de y, plus proche de z)
-        VECTEUR1 = 0
-        VECTEUR2 = 0
-        VECTEUR3 = 0
+        VECTEUR = 0
         vects = [u1.copy(), u2.copy(), u3.copy()]
         for i, u in enumerate(vects):
-            if np.abs(np.dot(u, [0.0, 0, 1])) > np.abs(np.dot(vects[VECTEUR1], [0.0, 0, 1])):
-                VECTEUR1 = i
-            elif np.abs(np.dot(u, [1.0, 0, 0])) > np.abs(np.dot(vects[VECTEUR2], [1.0, 0, 0])):
-                VECTEUR2 = i
-            else:
-                VECTEUR3 = i
-        base_directe[2]=vects[VECTEUR1]
-        base_directe[0]=vects[VECTEUR2]
-        base_directe[1]=vects[VECTEUR3]
+            if np.abs(np.dot(u, [0.0, 0, 1])) > np.abs(np.dot(vects[VECTEUR], [0.0, 0, 1])):
+                VECTEUR = i
+        base_directe[2]=vects[VECTEUR]
+        vects.pop(VECTEUR)
+
+        VECTEUR = 0
+        for i, u in enumerate(vects):
+            if np.abs(np.dot(u, [1.0, 0, 0])) > np.abs(np.dot(vects[VECTEUR], [1.0, 0, 0])):
+                    VECTEUR = i
+        base_directe[0]=vects[VECTEUR]
+        vects.pop(VECTEUR)
+
+
+        base_directe[1]=vects[0]
 
         # vérifier que c'est direct
         if np.linalg.det(base_directe)<0:
