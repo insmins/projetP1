@@ -11,7 +11,7 @@ temps_debut=time.time()
 # création des instances de classes
 robot = Robot()
 pince = Pince()
-cube=Cube()
+cube=Cube(0.05)
 cam=Camera()
 
 # déplacement du robot à sa position initiale
@@ -38,7 +38,7 @@ rot = robot.rotation(0, roty, 0)
 base = base @ rot 
 
 # print(f'{rot=}' )
-# print(f'{base=}')
+print(f'{base=}')
 
 # création de la matrice de passage 4x4 avec la matrice de rotation et le vecteur translation (ici les coordonnées de centre)
 mat_passage=robot.matrice_passage_normale(base, centre)
@@ -55,7 +55,7 @@ M = mat_passage @ np.transpose(M+[1])
 N = mat_passage @ np.transpose(N+[1])    
 mat_M = robot.matrice_passage_normale(base,np.transpose(M[:3]))
 mat_N = robot.matrice_passage_normale(base,np.transpose(N[:3]))
-pose_cube=matrice_to_pose(mat_M)
+pose_cube = matrice_to_pose(mat_M)
 pose_dessus_cube = matrice_to_pose(mat_N)
 
 # prise du cube
