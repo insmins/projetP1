@@ -4,7 +4,7 @@
 
 ## Description du projet
 
-L’objectif de ce projet est de développer une application pilotant un robot UR-5 afin que ce dernier soit capable de saisir et de ranger un ensemble de cubes posés en « vrac » dans l’espace de travail du robot : les cubes sont initialement placés de manière désordonnée, si bien que leur orientation peut être quelconque (c’est-à-dire que les normales aux faces des cubes peuvent être en dehors d’un plan horizontal ou d’un plan vertical). A l’aide d’une caméra de profondeur de type « real sense », le système doit d’abord analyser son environnement en construisant un nuage de points. Sur la base de ce dernier, il tente de détecter et d’estimer la pose des cubes présents. Cette pose étant disponible, l’application doit sélectionner les cubes jugés « préhensible » (critères à définir) par le robot, déterminer une trajectoire d’accostage et de « capture » de ces cubes pour les disposer de manière régulière dans un contenant ou sur l’espace de travail.
+L’objectif de ce projet est de développer une application pilotant un robot UR-5 afin que ce dernier soit capable de saisir et de ranger un ensemble de cubes posés en « vrac » dans l’espace de travail du robot : les cubes sont initialement placés de manière désordonnée, si bien que leur orientation peut être quelconque (c’est-à-dire que les normales aux faces des cubes peuvent être en dehors d’un plan horizontal ou d’un plan vertical). A l’aide d’une caméra de profondeur de type « real sense », le système doit d’abord analyser son environnement en construisant un nuage de points. Sur la base de ce dernier, il tente de détecter et d’estimer la pose des cubes présents. Cette pose étant disponible, l’application doit sélectionner les cubes jugés « préhensibles » (critères à définir) par le robot, déterminer une trajectoire d’accostage et de « capture » de ces cubes pour les disposer de manière régulière dans un contenant ou sur l’espace de travail.
 
 La fiche du projet est disponible ici : [fiche projet](/documentation/UV_Projet_tri-robotise-prise-pieces-vrac.pdf)
 
@@ -34,7 +34,6 @@ La librairie Open3D permet d'effectuer un grand nombre d'opérations sur les nua
 - Création d'un objet `PointCloud`contenant les points 3D obtenus par la caméra
 - Suppression des points statistiquement aberrants et des points hors de la zone de travail
 - Sous-échantillonnage du nuage de points pour alléger les calculs
-- Calcul des normales des points
 
 #### La méthode Ransac
 RANSAC, ou Random Sample Consensus est une méthode pour estimer des paramètres mathématiques. Ici, on utilise cette méthode pour reconnaître un cube dans un nuage de points. La méthode consiste en un choix aléatoire de paramètres, effectué un nombre conséquent de fois, pour ne garder que les paramètres les plus proches de la réalité.
@@ -42,9 +41,9 @@ RANSAC, ou Random Sample Consensus est une méthode pour estimer des paramètres
 Dans le cas de la reconnaissance du cube, on estime une position du centre du cube et on calcule le nombre de points entre une distance minimale et une distance maximale. Dans un cube, cela correspond à la distance entre le centre et le centre d'une face pour le minimum, et entre le centre et un coin du cube pour le maximum.
 Ainsi, à la fin de ce Ransac, on obtient la position du centre, mais l'orientation de ce cube n'est pas assez précise.
 
-![Ransac de carré](/documentation/illu_ransac.png "Ransac de carré").
+![Ransac de carré](/documentation/illu_ransac.png "Ransac de carré") _à gauche, peu de points dans la zone. à droite, tous les points sont dans la zone._
 
-![Cubes détectés](/documentation/cubes_detectes.jpg)
+![Cubes détectés](/documentation/cubes_detectes.jpg) _vue 3d d'un cube détecté dans un nuage de points_
 
 #### Recherche de l'angle
 Pour rendre l'orientation du cube plus précise, on récupère de la méthode précédente la position du centre du cube ainsi que les points appartenant au cube trouvé (les points à une certaine distance du centre).
@@ -71,30 +70,28 @@ Le projet est trouvable sur le GItlab de l'IMT :
 Pour chaque itération : 
 - La détermination de la position des cubes est réalisée. On parvient à obtenir la position du centre du "meilleur" cube et l'orientation de celui-ci.
 - De cette position on parvient à calculer la position de prise où le robot doit se rendre.
-- Une fois le cube pris, le robot le pose à un emplacement définit.
+- Une fois le cube pris, le robot le pose à un emplacement défini.
 
 ### Objectifs non traités et améliorations possibles
 
-Parmi les objectifs définits par le projet, la création d'un critère de "préhensibilité" n'a pas été réalisé. Nous avons testé uniquement le cas où le cube était dans une configuration atteignable par le robot. Nous n'avons pas eu le temps d'étudier le cas contraire.
+Parmi les objectifs définis par le projet, la création d'un critère de "préhensibilité" n'a pas été réalisée. Nous avons testé uniquement le cas où le cube était dans une configuration atteignable par la face la plus haute par le robot. Nous n'avons pas eu le temps d'étudier le cas contraire.
 
 Dans les pistes d'améliorations, on peut citer :
 - Obtenir une meilleure calibration entre la caméra et la pince pour obtenir une meilleure image du cube lors du regroupement des points dans le repère du robot.
-- Un meilleur calcul de l'orientation du cube, qui est, à ce stade, parfois en léger décalage avec l'orientation réelle du cube. Ce peut conduire à une mauvaise prise du cube, voir à une incapacité à prendre le cube alors que la position est bonne. Cela pourrait être fait par un meilleur repérage des côtés du cube pour une meilleure définition des normales et donc de la base du cube.
+- Un meilleur calcul de l'orientation et la position du cube, soit en améliorant l'algorithme de Ransac utilisé soit en trouvant un algorithme plus performant
 - Utiliser des filtres de couleur sur l'image prise par la caméra pour définir une condition d'arrêt pour le script. Ce filtre pourrait aussi remplacer ou être combiné à la fonction `cube.enlever_plateau` afin d'améliorer la suppression des points inutiles.
-- Redéfinir la zone de dépôt des cubes, non adaptée à la prise, parfois aléatoire, (cf. point précédent) des cubes.
-- Définir un "offset" pour la position de rangement et de prise pour prendre en compte la taille du cube (un cube plus grand doit être posé plus haut qu'un petit cube).
-- Changer les poses de prises de photos pour avoir de meilleures données brutes à traiter.
-- Chercher 
+- Redéfinir la zone de dépôt des cubes pour s'adapter à chaque type de cube, par exemple définir un "offset" pour la position de rangement et de prise (un cube plus grand doit être posé plus haut qu'un petit cube).
+- Rendre le code plus rapide. Le traitement des nuages de points est très lent (plusieurs minutes) avec un processeur moyen. Par exemple, utiliser des threads pour calculer le Ransac.
 
 ### [Robot.py](/Robot.py)
 
-Le fichier [Robot.py](/Robot.py) définit la classe `Robot` qui contient des variables de poses enregistrées du robots ainsi que les fonctions utiles pour faire fonctionner le robot et les fonctions réalisant les calculs liés au changement de base pour déterminer les poses du robot.
+Le fichier [Robot.py](/Robot.py) définit la classe `Robot` qui contient des variables de poses enregistrées du robot ainsi que les fonctions utiles pour faire fonctionner le robot et les fonctions réalisant les calculs liés aux changements de base pour déterminer les poses du robot.
 
 ### [Pince.py](/Pince.py)
 
-Le fichier [Pince.py](/Pince.py) définit la classe `Pince` qui contient les fonctions permettant la fermeture et l'ouverture de la pince. Seules les focntions `prise`et `lacher` sont à utiliser.
+Le fichier [Pince.py](/Pince.py) définit la classe `Pince` qui contient les fonctions permettant la fermeture et l'ouverture de la pince. Seules les fonctions `prise`et `lacher` sont à utiliser.
 
-La classe Pince active en réalité le programme sur le robot : 
+La classe Pince active en réalité le programme sur le robot :  
 ![photo programme robot](/documentation/programme_pince_2.jpg)
 
 La fonction `prise` met `digital_out[0]` à 1, ce qui permet d'activer la commande `2FG Grip (35)` 
@@ -115,7 +112,7 @@ Le fichier [cube.py](/cube.py) définit la classe `Cube` contenant les fonctions
 
 ### [projetP1.py](/projetP1.py)
 
-Le fichier contient l'algorithme exécuté par le robot. Il appelle les focntions des différentes classes pour réaliser toutes les actions demandés depuis la prise de photo jusqu'à la dépose du dernier cube.
+Le fichier contient l'algorithme exécuté par le robot. Il appelle les fonctions des différentes classes pour réaliser toutes les actions demandées depuis la prise de photo jusqu'à la dépose du dernier cube.
 
 
 ## Installation
@@ -123,7 +120,7 @@ Le fichier contient l'algorithme exécuté par le robot. Il appelle les focntion
 ### Environnement Virtuel
 Le projet a été entièrement réalisé en Python. Le programme est fonctionnel pour les versions de Python entre `3.9.13` et `3.11.7`
 
-Les librairies nécessaires sont : (installables avec : `pip install nomdelalibrairie`)
+Les librairies nécessaires sont : (installables avec la commande suivante : `pip install opencv-python pyrealsense2 numpy open3d ur-rtde`)
 - `opencv-python` : pour le traitement de la caméra
 - `pyrealsense2` : API de la caméra
 - `numpy` : pour des calculs simples de matrices
@@ -136,7 +133,7 @@ Le projet a été réalisé avec un robot UR5.
 
 ![robot UR5](/documentation/espace_travail_1.jpg)
 
-Une pince 2GF de On robot est fixé sur le robot ainsi qu'une caméra Real Sense 
+Une pince 2FG de On Robot est fixée sur le robot ainsi qu'une caméra Intel RealSense 
 
 ![pince 2FG](/documentation/pince_robot.jpg)
 ![pince et camera](/documentation/pince_cam.jpg)
@@ -144,3 +141,5 @@ Une pince 2GF de On robot est fixé sur le robot ainsi qu'une caméra Real Sense
 L'espace de travail du robot est recouvert d'imprimés de bruit gaussien pour avoir uen meilleure perception de la profondeur par la caméra.
 
 ![espace de travail](/documentation/espace_travail_2.jpg)
+
+## Sources d'information
