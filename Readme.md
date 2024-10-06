@@ -75,11 +75,16 @@ Pour chaque itération :
 
 ### Objectifs non traités et améliorations possibles
 
-Parmi les objectifs définits par le projet, la création d'un critère de "préhensibilité" n'a pas été réalisé. Nous avons testé uniquement des cas où le robot était capable d'aller, et n'avons pas eu le temps d'étudier le cas contraire.
+Parmi les objectifs définits par le projet, la création d'un critère de "préhensibilité" n'a pas été réalisé. Nous avons testé uniquement le cas où le cube était dans une configuration atteignable par le robot. Nous n'avons pas eu le temps d'étudier le cas contraire.
 
 Dans les pistes d'améliorations, on peut citer :
-- Un meilleur calcul de l'orientation du cube, qui est, à ce stade, parfois en léger décalage avec l'orientation réelle du cube. Ce peut conduire à une mauvaise prise du cube, voir à une incapacité à prendre le cube alors que la position est bonne.
+- Obtenir une meilleure calibration entre la caméra et la pince pour obtenir une meilleure image du cube lors du regroupement des points dans le repère du robot.
+- Un meilleur calcul de l'orientation du cube, qui est, à ce stade, parfois en léger décalage avec l'orientation réelle du cube. Ce peut conduire à une mauvaise prise du cube, voir à une incapacité à prendre le cube alors que la position est bonne. Cela pourrait être fait par un meilleur repérage des côtés du cube pour une meilleure définition des normales et donc de la base du cube.
+- Utiliser des filtres de couleur sur l'image prise par la caméra pour définir une condition d'arrêt pour le script. Ce filtre pourrait aussi remplacer ou être combiné à la fonction `cube.enlever_plateau` afin d'améliorer la suppression des points inutiles.
 - Redéfinir la zone de dépôt des cubes, non adaptée à la prise, parfois aléatoire, (cf. point précédent) des cubes.
+- Définir un "offset" pour la position de rangement et de prise pour prendre en compte la taille du cube (un cube plus grand doit être posé plus haut qu'un petit cube).
+- Changer les poses de prises de photos pour avoir de meilleures données brutes à traiter.
+- Chercher 
 
 ### [Robot.py](/Robot.py)
 
