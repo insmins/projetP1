@@ -6,7 +6,7 @@
 
 L’objectif de ce projet est de développer une application pilotant un robot UR-5 afin que ce dernier soit capable de saisir et de ranger un ensemble de cubes posés en « vrac » dans l’espace de travail du robot : les cubes sont initialement placés de manière désordonnée, si bien que leur orientation peut être quelconque (c’est-à-dire que les normales aux faces des cubes peuvent être en dehors d’un plan horizontal ou d’un plan vertical). A l’aide d’une caméra de profondeur de type « real sense », le système doit d’abord analyser son environnement en construisant un nuage de points. Sur la base de ce dernier, il tente de détecter et d’estimer la pose des cubes présents. Cette pose étant disponible, l’application doit sélectionner les cubes jugés « préhensibles » (critères à définir) par le robot, déterminer une trajectoire d’accostage et de « capture » de ces cubes pour les disposer de manière régulière dans un contenant ou sur l’espace de travail.
 
-La fiche du projet est disponible ici : [fiche projet](/documentation/UV_Projet_tri-robotise-prise-pieces-vrac.pdf)
+La fiche du projet est disponible ici : [fiche projet](/documentation/UV_Projet_tri-robotise-prise-pieces-vrac.pdf).
 
 ## Etapes de réalisation
 
@@ -15,7 +15,7 @@ La fiche du projet est disponible ici : [fiche projet](/documentation/UV_Projet_
 Le robot possède 6 positions enregistrées pour prendre des photos.
 
 La librairie utilisée est `pyrealsense`.
-Lorsqu'une position est atteinte par le robot, la caméra prend une photo et crée une liste de points. Chaque point est stocké sous la forme "`[pixel x, pixel y, profondeur]`" 
+Lorsqu'une position est atteinte par le robot, la caméra prend une photo et crée une liste de points. Chaque point est stocké sous la forme `[pixel x, pixel y, profondeur]`.
 
 ### Création d'un nuage de points à partir des photos
 
@@ -31,9 +31,9 @@ Il est possible de stocker ces 6 listes de points en .txt grâce au paramètre "
 
 #### Pré-traitement
 La librairie Open3D permet d'effectuer un grand nombre d'opérations sur les nuages de points. Voici la liste des opérations de pré-traitement effectuées :
-- Création d'un objet `PointCloud`contenant les points 3D obtenus par la caméra
-- Suppression des points statistiquement aberrants et des points hors de la zone de travail
-- Sous-échantillonnage du nuage de points pour alléger les calculs
+- Création d'un objet `PointCloud`contenant les points 3D obtenus par la caméra,
+- Suppression des points statistiquement aberrants et des points hors de la zone de travail,
+- Sous-échantillonnage du nuage de points pour alléger les calculs.
 
 #### La méthode Ransac
 RANSAC, ou Random Sample Consensus est une méthode pour estimer des paramètres mathématiques. Ici, on utilise cette méthode pour reconnaître un cube dans un nuage de points. La méthode consiste en un choix aléatoire de paramètres, effectué un nombre conséquent de fois, pour ne garder que les paramètres les plus proches de la réalité.
@@ -41,9 +41,11 @@ RANSAC, ou Random Sample Consensus est une méthode pour estimer des paramètres
 Dans le cas de la reconnaissance du cube, on estime une position du centre du cube et on calcule le nombre de points entre une distance minimale et une distance maximale. Dans un cube, cela correspond à la distance entre le centre et le centre d'une face pour le minimum, et entre le centre et un coin du cube pour le maximum.
 Ainsi, à la fin de ce Ransac, on obtient la position du centre, mais l'orientation de ce cube n'est pas assez précise.
 
-![Ransac de carré](/documentation/illu_ransac.png "Ransac de carré") _à gauche, peu de points dans la zone. à droite, tous les points sont dans la zone._
+![Ransac de carré](/documentation/illu_ransac.png "Ransac de carré") 
+_A gauche, peu de points dans la zone. A droite, tous les points sont dans la zone._
 
-![Cubes détectés](/documentation/cubes_detectes.jpg) _vue 3d d'un cube détecté dans un nuage de points_
+![Cubes détectés](/documentation/cubes_detectes.jpg) 
+_Vue 3d d'un cube détecté dans un nuage de points._
 
 #### Recherche de l'angle
 Pour rendre l'orientation du cube plus précise, on récupère de la méthode précédente la position du centre du cube ainsi que les points appartenant au cube trouvé (les points à une certaine distance du centre).
@@ -61,9 +63,7 @@ Une fois l'opération de dépôt effectuée, on réitère le procédé jusqu'à 
 
 ## Rendu 
 
-Le projet est trouvable sur le GItlab de l'IMT : 
-[Lien du gitlab](https://gvipers.imt-nord-europe.fr/ines.el.hadri/projetp1)
-
+Le projet est trouvable sur  GitHub : [Lien du GitHub](https:)
 
 ### Objectifs atteints
 
@@ -112,7 +112,7 @@ Le fichier [cube.py](/cube.py) définit la classe `Cube` contenant les fonctions
 
 ### [projetP1.py](/projetP1.py)
 
-Le fichier contient l'algorithme exécuté par le robot. Il appelle les fonctions des différentes classes pour réaliser toutes les actions demandées depuis la prise de photo jusqu'à la dépose du dernier cube.
+Le fichier contient l'algorithme exécuté par le robot. Il appelle les fonctions des différentes classes pour réaliser toutes les actions demandées depuis la prise de photo jusqu'à la dépose du cube.
 
 
 ## Installation
@@ -138,8 +138,13 @@ Une pince 2FG de On Robot est fixée sur le robot ainsi qu'une caméra Intel Rea
 ![pince 2FG](/documentation/pince_robot.jpg)
 ![pince et camera](/documentation/pince_cam.jpg)
 
-L'espace de travail du robot est recouvert d'imprimés de bruit gaussien pour avoir uen meilleure perception de la profondeur par la caméra.
+L'espace de travail du robot est recouvert d'imprimés de bruit gaussien pour avoir une meilleure perception de la profondeur par la caméra.
 
 ![espace de travail](/documentation/espace_travail_2.jpg)
 
+Sur l'image précédente, la zone de gauche où se tient le cube correspond à la zone où les cubes sont placés en "vrac". La zone de droite avec les socles est la zone de dépôt des cubes.
+
 ## Sources d'information
+
+- Calibration de la caméra et imprimés de bruit gaussien : https://dev.intelrealsense.com/docs/tuning-depth-cameras-for-best-performance
+- Video pour la segmentation du cube : https://youtu.be/-OSVKbSsqT0?si=YsiDMUULMWDmbrLX
