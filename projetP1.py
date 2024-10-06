@@ -46,7 +46,7 @@ mat_passage=robot.matrice_passage_normale(base, centre)
 
 # creation du points de prise (M) et d'un point au dessus de prise (N)
 M = [0]*3
-M[2] = -0.013
+M[2] = -0.005
 N= [0]*3
 N[2]=-0.2
 
