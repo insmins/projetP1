@@ -8,11 +8,9 @@ Description : Ce script contient la classe robot et l'algorithme effectuant tout
 # import
 import rtde_receive
 import rtde_control
-from Transfo import create_matrice, matrice_to_pose, matrice_rotation_3x3
+from Transfo import create_matrice, matrice_to_pose
 import numpy as np
 from Pince import Pince
-import time
-from Camera import Camera
 
 class Robot :
     """
@@ -37,6 +35,11 @@ class Robot :
         self.delta_x = 0.083 #(en mm) decalage en x pour la pose des cubes 
         self.delta_y = 0.083 #(en mm) decalage en y pour la pose des cubes 
         self.ip = IP # IP du robot
+        # matrice de changement entre la base de la cam et celle de la pince 
+        self.T_cam2gripper = [[ 0.04853044,  0.99880257,  0.00618264,  0.10201555],
+                        [-0.99542155,  0.047854,    0.08274014,  0.0217057 ],
+                        [ 0.0823452,  -0.01016975,  0.99655198, -0.153],
+                        [ 0.  ,        0.    ,      0.   ,       1.        ]] 
 
     def connexion(self):
         """Fonction pour se connecter au robot grâce à son IP"""
@@ -49,7 +52,7 @@ class Robot :
 
     def bouger(self, pos, speed=0.5, acceleration=0.3):
         """
-        Déplacement du robot selon une pose donnée.
+        Déplacement du robot selon une pose donnée avec connexion préalable et déconnexion à la fin de l'action.
 
         Args:
             pos (list[float]): position à laquelle le robot doit aller.
@@ -65,15 +68,15 @@ class Robot :
         Calcul une pose à partir d'une autre et d'un changement donné.
 
         Args:
-            dx (float): variation selon l'axe x en mètre.
-            dy (float): variation selon l'axe y en mètre.
-            dz (float): variation selon l'axe z en mètre.
-            pos (list[float]): position à partir de laquelle on veut bouger.
+            dx (float, optional): variation selon l'axe x en mètre. Default to 0
+            dy (float, optional): variation selon l'axe y en mètre. Default to 0
+            dz (float, optional): variation selon l'axe z en mètre. Default to 0
+            pos (list[float], optional): position à partir de laquelle on veut bouger. Default to pose actuelle
 
         Returns:
             list[float] : La nouvelle position calculée
         """
-        # si on veut la pose actuelle
+        # pose actuelle si pos non donné
         if pos is None :
             pos = self.robot_r.getActualTCPPose()
         pos = [pos[0]+dx,pos[1]+dy,pos[2]+dz,pos[3],pos[4],pos[5]] # calcul de la nouvelle pose
@@ -108,23 +111,18 @@ class Robot :
         
         Args:
             objetCam (list[float]): les coordonnés du point à remettre dans la base du robot.
-            pose (list[float], optional): la position du robot à partir de laquelle faire le changement de base.
+            pose (list[float], optional): la position du robot à partir de laquelle faire le changement de base. Default to pose actuelle
         
         Returns:
             numpy.ndarray: les coordonnées du point dans la base du robot.
         """
         objetCam = np.transpose(objetCam + [1])
-        # si on veut la pose actuelle
+        # pose actuelle si pos non donné
         if pose == None:
             pose = self.robot_r.getActualTCPPose()
-        # matrice de changement entre la base de la cam et celle de la pince 
-        T_cam2gripper = [[ 0.04853044,  0.99880257,  0.00618264,  0.10201555],
-                        [-0.99542155,  0.047854,    0.08274014,  0.0217057 ],
-                        [ 0.0823452,  -0.01016975,  0.99655198, -0.153],
-                        [ 0.  ,        0.    ,      0.   ,       1.        ]]     
-        # matrice de changement entre la base de la pince et celle du robot
+        # calcul de la matrice de changement entre la base de la pince et celle du robot
         T_gripper2base = create_matrice(pose)
-        res = T_gripper2base @ T_cam2gripper @ objetCam
+        res = T_gripper2base @ self.T_cam2gripper @ objetCam
         return res[:3]
     
     def rotation(self,gamma, beta,alpha): 
@@ -143,7 +141,7 @@ class Robot :
         alpha=alpha*(np.pi/180)
         beta=beta*(np.pi/180)
         gamma=gamma*(np.pi/180)
-        #calcul des matrice de roation selon chaque
+        #calcul des matrice de rotation selon chaque axe
         Rx=np.asanyarray([[1,            0,             0],
                         [0,np.cos(gamma),-np.sin(gamma)],
                         [0,np.sin(gamma), np.cos(gamma)]])
@@ -174,13 +172,11 @@ class Robot :
 
 
 if __name__ == "__main__":
-    from cube import Cube
-    temps_debut=time.time()
     robot = Robot()
     pince = Pince()
     robot.bouger(robot.pos_init, 3, 1)
 
-    # # test des positions de  cam
+    """test des positions de cam"""
     # robot.bouger(robot.pos_cam_1, 3, 1)
     # robot.bouger(robot.pos_cam_2, 3, 1)
     # robot.bouger(robot.pos_cam_3, 3, 1)
@@ -195,13 +191,13 @@ if __name__ == "__main__":
     # robot.bouger(robot.pos_cam_6, 2, 0.3)
     # robot.bouger(robot.pos_init,2)
 
-    # # test des positions de rangement
+    """test des positions de rangement"""
     # for _ in range(9) :
     #     robot.rangement(pince)
     # robot.rangement(pince) 
 
 
-    # # test bouger selon rotation
+    """test bouger selon rotation"""
     # point=robot.pos_init[:3]    
     # alpha=0 #selon x
     # beta=0 # selon y
@@ -213,77 +209,60 @@ if __name__ == "__main__":
     # # print("pose",pos)
     # robot.bouger(pos,0.5)
 
-    # base = [[ 0.11318712, -0.05391406,  0.99210985], [-0.46113575,  0.88161765,  0.10051933], [ 0.98480458,  0.13845839, -0.10482946]]
-    # base = [[-0.04793601, -0.30520967, -0.95107791], [-0.69461502,  0.69442563, -0.18783776], [ 0.71778257,  0.65162901, -0.24529127]]
-    # centre = [-0.28892185, 0.13279266, 0.05123627]
-    # base = [[ 0.12309199, -0.05049066,  0.99111001], [-0.49897492, -0.86643296,  0.01783156], [ 0.85745872, -0.4973782 , -0.13183123]]
-    # centre = [-0.29210161, 0.13408612, 0.04832842]
-    # base = [[ 0.05669472, -0.11661385,  0.99155782], [ 0.85654028, -0.50458508, -0.10831735], [0.51383997, 0.85492922, 0.07116536]] 
-    # centre = [-0.2891642,  0.1290486,  0.04429216]
-    # base = matrice_rotation_3x3(np.asarray(robot.pos_init[3:]))
-    # centre = robot.pos_init[:3]
-    # base = [[-0.06402565,  0.04122396, -0.99709644], [ 0.8782171 , -0.47219876, -0.07591475], [-0.4738714 , -0.88057377, -0.00597818]] 
-    # base = [[0.0, 0.0, 1.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0]]
-    # centre = [-0.27295247, 0.17494993, 0.05353815]
-    # base=cube.creer_base_directe(base[0], base[1], base[2])
 
-    cube=Cube()
-    cam=Camera()
 
-    base, centre = cube.main(cam, robot)
-    # print(base, centre)
-    # base = [[ 0.96153612,  0.25975672, -0.08930141], [np.float64(-0.26091364699558284), np.float64(0.9653602545721748), np.float64(-0.0019098962825697936)], [0.08571192, 0.02513639, 0.99600283]] 
-    # centre = [-0.28378925, 0.16210027, 0.0496929]
+    """test des matrices de changement de base"""
+    # base d'un cube et son centre à  tester
+    base=np.array([[-0.92547062, -0.31436589,  0.20930943],       [-0.36437526,  0.89362171, -0.26388958],       [-0.10360888, -0.32033473, -0.94156883]])
+    centre=np.array([-0.2767818 ,  0.15665482,  0.0477021 ])   
 
-    # base=np.array([[-0.92547062, -0.31436589,  0.20930943],       [-0.36437526,  0.89362171, -0.26388958],       [-0.10360888, -0.32033473, -0.94156883]])
-    # centre=np.array([-0.2767818 ,  0.15665482,  0.0477021 ])   
-
+    # on regarde si l'axe z est vers le haut 
     roty = 0
     if base[2][2] > 0:
         roty = 180
 
+    # on transpose la base pour avoir les vecteurs en colonne, ce qui donne ma matrice de rotation 3x3
     base=np.transpose(base)
     print(f'{base=}')
     print(f'{centre=}')
 
+    # si l'axe z est vers le haut, rotation de 180° selon y pour le mettre vers le bas 
     rot = robot.rotation(0, roty, 0)
     base = base @ rot 
     
     # print(f'{rot=}' )
     # print(f'{base=}')
 
-
+    # création de la matrice de passage 4x4 avec la matrice de rotation et le vecteur translation (ici les coordonnées de centre)
     mat_passage=robot.matrice_passage_normale(base, centre)
     # print(f'{mat_passage=}')
 
+    # creation du points de prise (M) et d'un point au dessus de prise (N)
     M = [0]*3
     M[2] = -0.013
     N= [0]*3
     N[2]=-0.2
 
+    # creation des matrices de passages et des poses pour aller à ces points.
     M = mat_passage @ np.transpose(M+[1])
     N = mat_passage @ np.transpose(N+[1])
-    # print(f'{M=}')
-    
     mat_M = robot.matrice_passage_normale(base,np.transpose(M[:3]))
     mat_N = robot.matrice_passage_normale(base,np.transpose(N[:3]))
-
-    # print(f'{mat_M=}')
     pose_cube=matrice_to_pose(mat_M)
-    # pose_cube[2] += 0.01325
     pose_dessus_cube = matrice_to_pose(mat_N)
-    # pose_dessus_cube[2] += 0.2
-    # pose_dessus_cube[4]+=np.pi  
-    # pose_dessus_cube[3]=0.135
-    # print(f'{pose_dessus_cube=}')
+
+    # prise du cube
     robot.bouger(pose_dessus_cube, 0.3)
     robot.bouger(pose_cube)
     pince.prise()
     robot.bouger(pose_dessus_cube)
-    robot.bouger(robot.pos_init)
-    robot.rangement(pince)
+
+    # passage par robot.pos_init pour éviter les singularités 
     robot.bouger(robot.pos_init)
 
-    temps_fin=time.time()
-    delta_temps=temps_fin-temps_debut
-    print(delta_temps)
+    # dépôt du cube
+    robot.rangement(pince)
+
+    
+    # retour à la position initiale 
+    robot.bouger(robot.pos_init)

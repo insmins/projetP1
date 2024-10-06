@@ -1,3 +1,11 @@
+"""
+Nom du fichier : ProjetP1.py
+Auteur : Mattéo CAUX et Inès EL HADRI
+Date : 2024-10-04
+Description : Ce script réalise les différentes étapes du projet, de la prise de photo au dépôt du cube.
+"""
+
+# import
 from Robot import Robot
 from Pince import Pince
 from Camera import Camera
@@ -18,13 +26,13 @@ cam=Camera()
 robot.bouger(robot.pos_init, 3, 1)
 
 
-############## entrée du while cube #########################
+####### entrée de la boucle while pour tester la présence d'un cube (non codé) ##########
 # while fonction_qui_teste_cube :  
 
 # obtention du centre et de la base du cube
 base, centre = cube.main(cam, robot)
 
-# si l'axe z est vers le haut, on tourne de 180° selon y pour le mettre vers le bas
+# on regarde si l'axe z est vers le haut 
 roty = 0
 if base[2][2] > 0:
     roty = 180
@@ -33,12 +41,12 @@ if base[2][2] > 0:
 base=np.transpose(base)
 # print(f'{base=}')
 
-# si l'axe z est vers le haut, on tourne de 180° selon y pour le mettre vers le bas 
+# si l'axe z est vers le haut, rotation de 180° selon y pour le mettre vers le bas 
 rot = robot.rotation(0, roty, 0)
 base = base @ rot 
 
 # print(f'{rot=}' )
-print(f'{base=}')
+# print(f'{base=}')
 
 # création de la matrice de passage 4x4 avec la matrice de rotation et le vecteur translation (ici les coordonnées de centre)
 mat_passage=robot.matrice_passage_normale(base, centre)
@@ -62,7 +70,6 @@ pose_dessus_cube = matrice_to_pose(mat_N)
 robot.bouger(pose_dessus_cube, 0.3)
 robot.bouger(pose_cube)
 pince.prise()
-
 robot.bouger(pose_dessus_cube)
 
 # passage par robot.pos_init pour éviter les singularités 

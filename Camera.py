@@ -228,33 +228,12 @@ def main():
     """
     cam = Camera()
     frames, aligned_frames, aligned_depth_frame, color_frame = cam.updateCam()
-    # frame = np.asanyarray(color_frame.get_data())
-    #
-    # # conversion hsv
-    # frame_hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-    #
-    # # creation des masques
-    # rouge = mask_rouge(frame_hsv)
-    # bleu = mask_bleu(frame_hsv)
-    # jaune = mask_jaune(frame_hsv)
-    # vert = mask_vert(frame_hsv)
-    #
-    # concat = np.hstack([rouge, jaune])
-    # concat2 = np.hstack([vert, bleu])
-    #
-    # # affichage des masques
-    # cv2.imshow("mask RJ", concat)
-    # cv2.imshow("mask VB", concat2)
-    # cv2.imshow("Image", frame)
     depth_image = np.asanyarray(aligned_depth_frame.get_data())
     flat_depth=depth_image.flatten()
     # flat_depth=removeOutliers(flat_depth, 2)    
     max_depth=depth_image.max()
     min_depth=depth_image.min()
-
     depth_image -= min_depth
-
-    
     depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(depth_image, alpha=255/(max_depth-min_depth)), cv2.COLORMAP_JET)
 
     cv2.imshow("Image", depth_colormap)
