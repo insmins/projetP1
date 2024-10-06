@@ -62,16 +62,16 @@ if __name__=="__main__":
     pince= Pince()
     robot = Robot()
 
-    #test de lacher et prise
+    #test de lacher
     pince.connexion()
     pince.lacher()
 
     # au tour du robot
     robot.bouger(robot.calcul_pos_relative(dy=0.1))
 
-    #re pince 
+    # test de prise
     pince.connexion()
     pince.prise()
 
-    #re robot
+    # au tour du robot
     robot.bouger(robot.calcul_pos_relative(dy=-0.1))

@@ -14,7 +14,7 @@ import open3d as o3d
 
 class Cube:
     """ classe permettant de reconnaitre un cube dans un nuage de points """
-    def __init__(self, taille_cube=0.065):
+    def __init__(self, taille_cube=0.05):
         """initialisation
 
         Args:
@@ -403,10 +403,11 @@ if __name__=="__main__":
     robot=Robot()
     cam=Camera()
 
+    # obtention du centre et de la base du cube
     base, centre = cube.main(cam, robot)
     print(base, centre)
 
-
+    # visualisation du cube et de sa base
     pcl_center=o3d.geometry.PointCloud()
     pcl_center.points=o3d.utility.Vector3dVector(np.array([centre,centre,centre]))
     pcl_center.normals=o3d.utility.Vector3dVector(np.array(base))
